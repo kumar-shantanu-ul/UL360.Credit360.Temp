@@ -27,3 +27,9 @@ jobs:
           else
             echo "No 'latest' SQL file found. Proceeding with the pull request."
           fi
+
+      - name: Fail if "latest" SQL file exists
+        if: steps.check-latest-sql.outputs.file_exists == 'true'
+        run: |
+          echo "Error: A SQL file containing 'latest' exists in the specified folder."
+          exit 1
