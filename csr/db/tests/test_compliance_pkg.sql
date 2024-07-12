@@ -1,0 +1,28 @@
+CREATE OR REPLACE PACKAGE csr.test_compliance_pkg AS
+
+PROCEDURE SetUpFixture;
+PROCEDURE TearDownFixture;
+
+PROCEDURE SetUp;
+PROCEDURE TearDown;
+
+PROCEDURE TestTempCompLevelsNone;
+PROCEDURE TestTempCompLevelsOneManyOverflow;
+
+PROCEDURE TestCreateRolloutInfo;
+
+PROCEDURE TestUpdateRegulationFailsWhenDuplicateVers;
+PROCEDURE TestClearingVersionHistoryWorksForReg;
+
+PROCEDURE TestUpdateRequirementFailsWhenDuplicateVers;
+PROCEDURE TestClearingVersionHistoryWorksForReq;
+
+-- FilterRolloutItems
+PROCEDURE TestSingleTagWithSingleExclusion;
+PROCEDURE TestSingleTagWithNoExclusion;
+PROCEDURE TestMultipleTagsWithSomeExclusion;
+PROCEDURE TestMultipleTagsWithAllExclusion;
+PROCEDURE TestRequirementWithSingleExclusion;
+
+END test_compliance_pkg;
+/

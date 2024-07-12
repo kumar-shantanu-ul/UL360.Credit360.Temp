@@ -1,0 +1,15 @@
+create index ct.ix_bt_air_trip_last_edited_b on ct.bt_air_trip (app_sid, last_edited_by_sid);
+create index ct.ix_bt_bus_trip_last_edited_b on ct.bt_bus_trip (app_sid, last_edited_by_sid);
+create index ct.ix_bt_cab_trip_last_edited_b on ct.bt_cab_trip (app_sid, last_edited_by_sid);
+create index ct.ix_bt_car_trip_last_edited_b on ct.bt_car_trip (app_sid, last_edited_by_sid);
+create index ct.ix_bt_motorbike__last_edited_b on ct.bt_motorbike_trip (app_sid, last_edited_by_sid);
+create index ct.ix_bt_profile_modified_by_s on ct.bt_profile (app_sid, modified_by_sid);
+create index ct.ix_bt_train_trip_last_edited_b on ct.bt_train_trip (app_sid, last_edited_by_sid);
+create index ct.ix_customer_opti_supplier_comp on ct.customer_options (app_sid, supplier_company_type_id);
+create index ct.ix_customer_opti_top_company_t on ct.customer_options (app_sid, top_company_type_id);
+create index ct.ix_ec_profile_modified_by_s on ct.ec_profile (app_sid, modified_by_sid);
+create index ct.ix_ps_item_created_by_si on ct.ps_item (app_sid, created_by_sid);
+create index ct.ix_ps_item_worksheet_id_ on ct.ps_item (app_sid, worksheet_id, row_number);
+create index ct.ix_ps_item_modified_by_s on ct.ps_item (app_sid, modified_by_sid);
+create index ct.ix_supplier_company_sid on ct.supplier (app_sid, company_sid);
+create index ct.ix_supplier_cont_user_sid on ct.supplier_contact (app_sid, user_sid);

@@ -1,0 +1,481 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=936
+@update_header
+
+
+-- TABLES
+CREATE TABLE CSR.EST_ACCOUNT(
+    APP_SID                    NUMBER(10, 0)    DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    USER_NAME                  VARCHAR2(256)    NOT NULL,
+    EST_ACCOUNT_SID            NUMBER(10, 0)    NOT NULL,
+    PASSWORD                   VARCHAR2(245)    NOT NULL,
+    TX_POLL_WAIT_MINUTES       NUMBER(10, 0)    NOT NULL,
+    TX_POLL_TIMEOUT_MINUTES    NUMBER(10, 0)    NOT NULL,
+    CONSTRAINT PK_EST_ACCOUNT PRIMARY KEY (APP_SID, EST_ACCOUNT_SID)
+)
+;
+
+CREATE TABLE CSR.EST_BUILDING(
+    APP_SID                     NUMBER(10, 0)    DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID             NUMBER(10, 0)    NOT NULL,
+    PM_CUSTOMER_ID              VARCHAR2(256)    NOT NULL,
+    PM_BUILDING_ID              VARCHAR2(256)    NOT NULL,
+    REGION_SID                  NUMBER(10, 0),
+    LAST_POLL_TRANSACTION_ID    NUMBER(10, 0),
+    BUILDING_NAME               VARCHAR2(256)    NOT NULL,
+    ADDRESS                     VARCHAR2(256),
+    CITY                        VARCHAR2(256),
+    STATE                       VARCHAR2(256),
+    ZIP_CODE                    VARCHAR2(16),
+    ZIP_CODE_EXT                VARCHAR2(16),
+    YEAR_BUILT                  NUMBER(10, 0),
+    IMPORT_DTM                  DATE             DEFAULT SYSDATE NOT NULL,
+    MAPPING_ERROR               VARCHAR2(512),
+    CONSTRAINT PK_EST_BUILDING PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID)
+)
+;
+
+CREATE TABLE CSR.EST_BUILDING_METRIC(
+    APP_SID            NUMBER(10, 0)     DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID    NUMBER(10, 0)     NOT NULL,
+    PM_CUSTOMER_ID     VARCHAR2(256)     NOT NULL,
+    PM_BUILDING_ID     VARCHAR2(256)     NOT NULL,
+    METRIC_NAME        VARCHAR2(256)     NOT NULL,
+    VAL                NUMBER(24, 10),
+    STR                VARCHAR2(512),
+    CONSTRAINT PK_EST_BUILDING_METRIC PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID, METRIC_NAME)
+)
+;
+
+CREATE TABLE CSR.EST_BUILDING_METRIC_MAPPING(
+    APP_SID            NUMBER(10, 0)     DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID    NUMBER(10, 0)     NOT NULL,
+    METRIC_NAME        VARCHAR2(256)     NOT NULL,
+    DESCRIPTION        VARCHAR2(1024),
+    IND_SID            NUMBER(10, 0),
+    CONSTRAINT PK_EST_BUILDING_METRIC_MAPPING PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, METRIC_NAME)
+)
+;
+
+CREATE TABLE CSR.EST_CUSTOMER(
+    APP_SID             NUMBER(10, 0)    DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID     NUMBER(10, 0)    NOT NULL,
+    PM_CUSTOMER_ID      VARCHAR2(256)    NOT NULL,
+    EST_CUSTOMER_SID    NUMBER(10, 0),
+    ORG_NAME            VARCHAR2(256)    NOT NULL,
+    EMAIL               VARCHAR2(256),
+    CONSTRAINT PK_EST_CUSTOMER PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID)
+)
+;
+
+CREATE TABLE CSR.EST_ENERGY_METER(
+    APP_SID                     NUMBER(10, 0)    DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID             NUMBER(10, 0)    NOT NULL,
+    PM_CUSTOMER_ID              VARCHAR2(256)    NOT NULL,
+    PM_BUILDING_ID              VARCHAR2(256)    NOT NULL,
+    PM_ENERGY_METER_ID          VARCHAR2(256)    NOT NULL,
+    PM_SPACE_ID                 VARCHAR2(256),
+    REGION_SID                  NUMBER(10, 0),
+    LAST_POLL_TRANSACTION_ID    NUMBER(10, 0),
+    METER_NAME                  VARCHAR2(256)    NOT NULL,
+    ENERGY_TYPE                 VARCHAR2(256)    NOT NULL,
+    GENERATION_METHOD           VARCHAR2(256),
+    UOM                         VARCHAR2(256)    NOT NULL,
+    ACTIVE                      NUMBER(1, 0)     DEFAULT 1 NOT NULL,
+    ADD_TO_TOTAL                NUMBER(1, 0)     DEFAULT 1 NOT NULL,
+    LAST_ENTRY_DATE             DATE,
+    SELLBACK                    NUMBER(1, 0)     DEFAULT 0 NOT NULL,
+    ENVIRO_ATRR_OWNED           NUMBER(1, 0)     DEFAULT 0 NOT NULL,
+    ACCESS_LEVEL                VARCHAR2(256),
+    MAPPING_ERROR               VARCHAR2(512),
+    CHECK (ACTIVE  IN (0,1)),
+    CHECK (ADD_TO_TOTAL IN (0,1)),
+    CHECK (SELLBACK IN (0,1)),
+    CHECK (ENVIRO_ATRR_OWNED IN (0,1)),
+    CONSTRAINT PK_EST_ENERGY_METER PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID, PM_ENERGY_METER_ID)
+)
+;
+
+CREATE TABLE CSR.EST_ENERGY_TYPE_MAPPING(
+    APP_SID              NUMBER(10, 0)     DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID      NUMBER(10, 0)     NOT NULL,
+    ENERGY_TYPE          VARCHAR2(256)     NOT NULL,
+    GENERATION_METHOD    VARCHAR2(256)     NOT NULL,
+    DESCRIPTION          VARCHAR2(1024),
+    IND_SID              NUMBER(10, 0),
+    CONSTRAINT PK_EST_ENERGY_TYPE_MAPPING PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, ENERGY_TYPE, GENERATION_METHOD)
+)
+;
+
+CREATE TABLE CSR.EST_SPACE(
+    APP_SID            NUMBER(10, 0)    DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID    NUMBER(10, 0)    NOT NULL,
+    PM_CUSTOMER_ID     VARCHAR2(256)    NOT NULL,
+    PM_BUILDING_ID     VARCHAR2(256)    NOT NULL,
+    PM_SPACE_ID        VARCHAR2(256)    NOT NULL,
+    REGION_SID         NUMBER(10, 0),
+    SPACE_NAME         VARCHAR2(256)    NOT NULL,
+    SPACE_TYPE         VARCHAR2(256)    NOT NULL,
+    CONSTRAINT PK_EST_SPACE PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID, PM_SPACE_ID)
+)
+;
+
+CREATE TABLE CSR.EST_SPACE_ATTR(
+    APP_SID            NUMBER(10, 0)     DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID    NUMBER(10, 0)     NOT NULL,
+    PM_CUSTOMER_ID     VARCHAR2(256)     NOT NULL,
+    PM_BUILDING_ID     VARCHAR2(256)     NOT NULL,
+    PM_SPACE_ID        VARCHAR2(256)     NOT NULL,
+    ATTR_NAME          VARCHAR2(256)     NOT NULL,
+    VAL                NUMBER(24, 10),
+    STR                VARCHAR2(512),
+    EFFECTIVE_DATE     DATE,
+    CONSTRAINT PK_EST_SPACE_ATTR PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID, PM_SPACE_ID, ATTR_NAME)
+)
+;
+
+CREATE TABLE CSR.EST_SPACE_ATTR_MAPPING(
+    APP_SID            NUMBER(10, 0)     DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID    NUMBER(10, 0)     NOT NULL,
+    ATTR_NAME          VARCHAR2(256)     NOT NULL,
+    DESCRIPTION        VARCHAR2(1024),
+    IND_SID            NUMBER(10, 0),
+    CONSTRAINT PK_EST_SPACE_ATTR_MAPPING PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, ATTR_NAME)
+)
+;
+
+CREATE TABLE CSR.EST_TRANSACTION(
+    APP_SID            NUMBER(10, 0)    DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID    NUMBER(10, 0)    NOT NULL,
+    TRANSACTION_ID     NUMBER(10, 0)    NOT NULL,
+    STARTED_DTM        DATE             NOT NULL,
+    COMPLETE           NUMBER(1, 0)     DEFAULT 0 NOT NULL,
+    SERVICE_NAME       VARCHAR2(256)    NOT NULL,
+    SERVICE_METHOD     VARCHAR2(256)    NOT NULL,
+    REQUEST_XML        SYS.XMLType,
+    CHECK (COMPLETE IN (0,1)),
+    CONSTRAINT PK_EST_TRANSACTION PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, TRANSACTION_ID)
+)
+;
+
+CREATE TABLE CSR.EST_TRANSACTION_POLL(
+    APP_SID            NUMBER(10, 0)    DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID    NUMBER(10, 0)    NOT NULL,
+    TRANSACTION_ID     NUMBER(10, 0)    NOT NULL,
+    POLL_DTM           DATE             NOT NULL,
+    CONSTRAINT PK_EST_TRANSACTION_POLL PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, TRANSACTION_ID)
+)
+;
+
+CREATE TABLE CSR.EST_WATER_METER(
+    APP_SID                     NUMBER(10, 0)    DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID             NUMBER(10, 0)    NOT NULL,
+    PM_CUSTOMER_ID              VARCHAR2(256)    NOT NULL,
+    PM_BUILDING_ID              VARCHAR2(256)    NOT NULL,
+    PM_WATER_METER_ID           VARCHAR2(256)    NOT NULL,
+    PM_SPACE_ID                 VARCHAR2(256),
+    REGION_SID                  NUMBER(10, 0),
+    LAST_POLL_TRANSACTION_ID    NUMBER(10, 0),
+    METER_NAME                  VARCHAR2(256)    NOT NULL,
+    USE_TYPE                    VARCHAR2(256)    NOT NULL,
+    UOM                         VARCHAR2(256)    NOT NULL,
+    ACTIVE                      NUMBER(1, 0)     DEFAULT 1 NOT NULL,
+    ADD_TO_TOTAL                NUMBER(1, 0)     DEFAULT 1 NOT NULL,
+    ACCESS_LEVEL                VARCHAR2(256),
+    MAPPING_ERROR               VARCHAR2(512),
+    CHECK (ACTIVE IN (0,1)),
+    CHECK (ADD_TO_TOTAL IN (0,1)),
+    CONSTRAINT PK_EST_WATER_METER PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID, PM_WATER_METER_ID)
+)
+;
+
+CREATE TABLE CSR.EST_WATER_USE_MAPPING(
+    APP_SID            NUMBER(10, 0)     DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    EST_ACCOUNT_SID    NUMBER(10, 0)     NOT NULL,
+    USE_TYPE           VARCHAR2(256)     NOT NULL,
+    DESCRIPTION        VARCHAR2(1024),
+    IND_SID            NUMBER(10, 0),
+    CONSTRAINT PK_EST_WATER_USE_MAPPING PRIMARY KEY (APP_SID, EST_ACCOUNT_SID, USE_TYPE)
+)
+;
+
+
+-- FKS
+ALTER TABLE CSR.EST_ACCOUNT ADD CONSTRAINT FK_EST_ACCNT_CUST 
+    FOREIGN KEY (APP_SID)
+    REFERENCES CSR.CUSTOMER(APP_SID)
+;
+
+ALTER TABLE CSR.EST_BUILDING ADD CONSTRAINT FK_EST_BLDNG_CUST 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID)
+    REFERENCES CSR.EST_CUSTOMER(APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID)
+;
+
+ALTER TABLE CSR.EST_BUILDING ADD CONSTRAINT FK_EST_BLDNG_RGN 
+    FOREIGN KEY (APP_SID, REGION_SID)
+    REFERENCES CSR.REGION(APP_SID, REGION_SID)
+;
+
+ALTER TABLE CSR.EST_BUILDING ADD CONSTRAINT FK_EST_BLDNG_TX 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID, LAST_POLL_TRANSACTION_ID)
+    REFERENCES CSR.EST_TRANSACTION(APP_SID, EST_ACCOUNT_SID, TRANSACTION_ID)
+;
+
+ALTER TABLE CSR.EST_BUILDING_METRIC ADD CONSTRAINT FK_EST_BLDMET_BLDNG 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID)
+    REFERENCES CSR.EST_BUILDING(APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID)
+;
+
+ALTER TABLE CSR.EST_BUILDING_METRIC_MAPPING ADD CONSTRAINT FK_EST_BLDMETMAP_ACCNT 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID)
+    REFERENCES CSR.EST_ACCOUNT(APP_SID, EST_ACCOUNT_SID)
+;
+
+ALTER TABLE CSR.EST_BUILDING_METRIC_MAPPING ADD CONSTRAINT FK_EST_BLDMETMAP_IND 
+    FOREIGN KEY (APP_SID, IND_SID)
+    REFERENCES CSR.IND(APP_SID, IND_SID)
+;
+
+ALTER TABLE CSR.EST_CUSTOMER ADD CONSTRAINT FK_EST_CUST_ACCNT 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID)
+    REFERENCES CSR.EST_ACCOUNT(APP_SID, EST_ACCOUNT_SID)
+;
+
+ALTER TABLE CSR.EST_ENERGY_METER ADD CONSTRAINT FK_EST_METER_BLDNG 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID)
+    REFERENCES CSR.EST_BUILDING(APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID)
+;
+
+ALTER TABLE CSR.EST_ENERGY_METER ADD CONSTRAINT FK_EST_METER_RGN 
+    FOREIGN KEY (APP_SID, REGION_SID)
+    REFERENCES CSR.REGION(APP_SID, REGION_SID)
+;
+
+ALTER TABLE CSR.EST_ENERGY_METER ADD CONSTRAINT FK_EST_METER_SPACE 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID, PM_SPACE_ID)
+    REFERENCES CSR.EST_SPACE(APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID, PM_SPACE_ID)
+;
+
+ALTER TABLE CSR.EST_ENERGY_METER ADD CONSTRAINT FK_EST_METER_TX 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID, LAST_POLL_TRANSACTION_ID)
+    REFERENCES CSR.EST_TRANSACTION(APP_SID, EST_ACCOUNT_SID, TRANSACTION_ID)
+;
+
+ALTER TABLE CSR.EST_ENERGY_TYPE_MAPPING ADD CONSTRAINT FK_EST_ENTYP_ACCNTT 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID)
+    REFERENCES CSR.EST_ACCOUNT(APP_SID, EST_ACCOUNT_SID)
+;
+
+ALTER TABLE CSR.EST_ENERGY_TYPE_MAPPING ADD CONSTRAINT FK_EST_ENTYP_IND 
+    FOREIGN KEY (APP_SID, IND_SID)
+    REFERENCES CSR.IND(APP_SID, IND_SID)
+;
+
+ALTER TABLE CSR.EST_SPACE ADD CONSTRAINT FK_EST_SPACE_BLDNG 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID)
+    REFERENCES CSR.EST_BUILDING(APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID)
+;
+
+ALTER TABLE CSR.EST_SPACE ADD CONSTRAINT FK_EST_SPACE_RGN 
+    FOREIGN KEY (APP_SID, REGION_SID)
+    REFERENCES CSR.REGION(APP_SID, REGION_SID)
+;
+
+ALTER TABLE CSR.EST_SPACE_ATTR ADD CONSTRAINT FK_EST_SPACEATTR_SPACE 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID, PM_SPACE_ID)
+    REFERENCES CSR.EST_SPACE(APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID, PM_SPACE_ID)
+;
+
+ALTER TABLE CSR.EST_SPACE_ATTR_MAPPING ADD CONSTRAINT FK_EST_SPACEATTRM_ACCNT 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID)
+    REFERENCES CSR.EST_ACCOUNT(APP_SID, EST_ACCOUNT_SID)
+;
+
+ALTER TABLE CSR.EST_SPACE_ATTR_MAPPING ADD CONSTRAINT FK_EST_SPACEATTRM_IND 
+    FOREIGN KEY (APP_SID, IND_SID)
+    REFERENCES CSR.IND(APP_SID, IND_SID)
+;
+
+ALTER TABLE CSR.EST_TRANSACTION ADD CONSTRAINT FK_EST_TX_ACCNT 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID)
+    REFERENCES CSR.EST_ACCOUNT(APP_SID, EST_ACCOUNT_SID)
+;
+
+ALTER TABLE CSR.EST_TRANSACTION_POLL ADD CONSTRAINT FK_EST_TXPOLL_TX 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID, TRANSACTION_ID)
+    REFERENCES CSR.EST_TRANSACTION(APP_SID, EST_ACCOUNT_SID, TRANSACTION_ID)
+;
+
+ALTER TABLE CSR.EST_WATER_METER ADD CONSTRAINT FK_WMETER_BLDNG 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID)
+    REFERENCES CSR.EST_BUILDING(APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID)
+;
+
+ALTER TABLE CSR.EST_WATER_METER ADD CONSTRAINT FK_WMETER_RGN 
+    FOREIGN KEY (APP_SID, REGION_SID)
+    REFERENCES CSR.REGION(APP_SID, REGION_SID)
+;
+
+ALTER TABLE CSR.EST_WATER_METER ADD CONSTRAINT FK_WMETER_SPACE 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID, PM_SPACE_ID)
+    REFERENCES CSR.EST_SPACE(APP_SID, EST_ACCOUNT_SID, PM_CUSTOMER_ID, PM_BUILDING_ID, PM_SPACE_ID)
+;
+
+ALTER TABLE CSR.EST_WATER_METER ADD CONSTRAINT FK_WMETER_TX 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID, LAST_POLL_TRANSACTION_ID)
+    REFERENCES CSR.EST_TRANSACTION(APP_SID, EST_ACCOUNT_SID, TRANSACTION_ID)
+;
+
+ALTER TABLE CSR.EST_WATER_USE_MAPPING ADD CONSTRAINT FK_WUMAP_ACCNT 
+    FOREIGN KEY (APP_SID, EST_ACCOUNT_SID)
+    REFERENCES CSR.EST_ACCOUNT(APP_SID, EST_ACCOUNT_SID)
+;
+
+ALTER TABLE CSR.EST_WATER_USE_MAPPING ADD CONSTRAINT FK_WUMAP_IND 
+    FOREIGN KEY (APP_SID, IND_SID)
+    REFERENCES CSR.IND(APP_SID, IND_SID)
+;
+
+
+
+
+-- FK INDEXES
+CREATE INDEX csr.ix_est_accnt_cust ON csr.est_account (app_sid);
+CREATE INDEX csr.ix_est_bldng_rgn ON csr.est_building (app_sid, region_sid);
+CREATE INDEX csr.ix_est_bldng_tx ON csr.est_building (app_sid, est_account_sid, last_poll_transaction_id);
+CREATE INDEX csr.ix_est_bldng_cust ON csr.est_building (app_sid, est_account_sid, pm_customer_id);
+CREATE INDEX csr.ix_est_cust_accnt ON csr.est_customer (app_sid, est_account_sid);
+CREATE INDEX csr.ix_est_meter_space ON csr.est_energy_meter (app_sid, est_account_sid, pm_customer_id, pm_building_id, pm_space_id);
+CREATE INDEX csr.ix_est_meter_rgn ON csr.est_energy_meter (app_sid, region_sid);
+CREATE INDEX csr.ix_est_meter_tx ON csr.est_energy_meter (app_sid, est_account_sid, last_poll_transaction_id);
+CREATE INDEX csr.ix_est_meter_bldng ON csr.est_energy_meter (app_sid, est_account_sid, pm_customer_id, pm_building_id);
+CREATE INDEX csr.ix_est_entyp_ind ON csr.est_energy_type_mapping (app_sid, ind_sid);
+CREATE INDEX csr.ix_est_entyp_accntt ON csr.est_energy_type_mapping (app_sid, est_account_sid);
+CREATE INDEX csr.ix_est_space_rgn ON csr.est_space (app_sid, region_sid);
+CREATE INDEX csr.ix_est_space_bldng ON csr.est_space (app_sid, est_account_sid, pm_customer_id, pm_building_id);
+CREATE INDEX csr.ix_est_spaceattr_space ON csr.est_space_attr (app_sid, est_account_sid, pm_customer_id, pm_building_id, pm_space_id);
+CREATE INDEX csr.ix_est_spaceattrm_ind ON csr.est_space_attr_mapping (app_sid, ind_sid);
+CREATE INDEX csr.ix_est_spaceattrm_accnt ON csr.est_space_attr_mapping (app_sid, est_account_sid);
+CREATE INDEX csr.ix_est_tx_accnt ON csr.est_transaction (app_sid, est_account_sid);
+CREATE INDEX csr.ix_wmeter_space ON csr.est_water_meter (app_sid, est_account_sid, pm_customer_id, pm_building_id, pm_space_id);
+CREATE INDEX csr.ix_wmeter_rgn ON csr.est_water_meter (app_sid, region_sid);
+CREATE INDEX csr.ix_wmeter_tx ON csr.est_water_meter (app_sid, est_account_sid, last_poll_transaction_id);
+CREATE INDEX csr.ix_wmeter_bldng ON csr.est_water_meter (app_sid, est_account_sid, pm_customer_id, pm_building_id);
+CREATE INDEX csr.ix_wumap_ind ON csr.est_water_use_mapping (app_sid, ind_sid);
+CREATE INDEX csr.ix_wumap_accnt ON csr.est_water_use_mapping (app_sid, est_account_sid);
+CREATE INDEX csr.ix_est_bldmet_bldng ON csr.est_building_metric (app_sid, est_account_sid, pm_customer_id, pm_building_id);
+CREATE INDEX csr.ix_est_bldmetmap_ind ON csr.est_building_metric_mapping (app_sid, ind_sid);
+CREATE INDEX csr.ix_est_bldmetmap_accnt ON csr.est_building_metric_mapping (app_sid, est_account_sid);
+
+
+
+-- RLS
+declare
+	policy_already_exists exception;
+	pragma exception_init(policy_already_exists, -28101);
+	type t_tabs is table of varchar2(30);
+	v_list t_tabs;
+	v_null_list t_tabs;
+begin	
+	v_list := t_tabs(
+		'EST_ACCOUNT',
+		'EST_BUILDING',
+		'EST_BUILDING_METRIC',
+		'EST_BUILDING_METRIC_MAPPING',
+		'EST_CUSTOMER',
+		'EST_ENERGY_METER',
+		'EST_ENERGY_TYPE_MAPPING',
+		'EST_SPACE',
+		'EST_SPACE_ATTR',
+		'EST_SPACE_ATTR_MAPPING',
+		'EST_TRANSACTION',
+		'EST_TRANSACTION_POLL',
+		'EST_WATER_METER',
+		'EST_WATER_USE_MAPPING'
+	);
+	for i in 1 .. v_list.count loop
+		declare
+			v_name varchar2(30);
+			v_i pls_integer default 1;
+		begin
+			loop
+				begin
+					if v_i = 1 then
+						v_name := SUBSTR(v_list(i), 1, 23)||'_POLICY';
+					else
+						v_name := SUBSTR(v_list(i), 1, 21)||'_POLICY_'||v_i;
+					end if;
+					dbms_output.put_line('doing '||v_name);
+				    dbms_rls.add_policy(
+				        object_schema   => 'CSR',
+				        object_name     => v_list(i),
+				        policy_name     => v_name,
+				        function_schema => 'CSR',
+				        policy_function => 'appSidCheck',
+				        statement_types => 'select, insert, update, delete',
+				        update_check	=> true,
+				        policy_type     => dbms_rls.context_sensitive );
+				  	exit;
+				exception
+					when policy_already_exists then
+						v_i := v_i + 1;
+				end;
+			end loop;
+		end;
+	end loop;
+end;
+/
+
+DECLARE
+	v_new_class_id 		security.security_pkg.T_SID_ID;
+	v_act 				security.security_pkg.T_ACT_ID;
+BEGIN
+	security.user_pkg.LogonAuthenticated(security.security_pkg.SID_BUILTIN_ADMINISTRATOR, NULL, v_act);	
+	BEGIN	
+		security.class_pkg.CreateClass(v_act, NULL, 'EnergyStarAccount', 'csr.energy_star_account_pkg', NULL, v_new_class_id);
+	EXCEPTION
+		WHEN security.security_pkg.DUPLICATE_OBJECT_NAME THEN
+			NULL;
+	END;
+	BEGIN	
+		security.class_pkg.CreateClass(v_act, NULL, 'EnergyStarCustomer', 'csr.energy_star_customer_pkg', NULL, v_new_class_id);
+	EXCEPTION
+		WHEN security.security_pkg.DUPLICATE_OBJECT_NAME THEN
+			NULL;
+	END;
+END;
+/
+
+CREATE OR REPLACE TYPE CSR.T_EST_ATTR_ROW AS
+  OBJECT ( 
+	NAME		VARCHAR2(256),
+	VAL			NUMBER(24, 10),
+	STR			VARCHAR2(1024),
+	DTM			DATE,
+	POS			NUMBER(10)
+  );
+/
+
+CREATE OR REPLACE TYPE CSR.T_EST_ATTR_TABLE AS 
+  TABLE OF CSR.T_EST_ATTR_ROW;
+/
+
+
+@../energy_star_account_pkg
+@../energy_star_customer_pkg
+@../energy_star_pkg
+
+@../energy_star_account_body
+@../energy_star_customer_body
+@../energy_star_body
+@../region_body
+
+
+grant execute on csr.energy_star_account_pkg to security;
+grant execute on csr.energy_star_customer_pkg to security;
+
+grant execute on csr.energy_star_account_pkg to web_user;
+grant execute on csr.energy_star_customer_pkg to web_user;
+grant execute on csr.energy_star_pkg to web_user;
+
+@update_tail

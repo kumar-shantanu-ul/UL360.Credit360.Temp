@@ -1,0 +1,80 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=2989
+define minor_version=30
+@update_header
+
+-- *** DDL ***
+-- Create tables
+CREATE TABLE csr.forecasting_email_sub (
+	app_sid				NUMBER(10, 0) DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+	forecasting_sid		NUMBER(10, 0) NOT NULL,
+	csr_user_sid		NUMBER(10, 0) NOT NULL,
+	CONSTRAINT PK_FRCSTNG_EMAIL				PRIMARY KEY (APP_SID, FORECASTING_SID, CSR_USER_SID),
+	CONSTRAINT FK_FRCSTNG_EMAIL_FRCSTNG_SID	FOREIGN KEY (APP_SID, FORECASTING_SID) REFERENCES CSR.FORECASTING_SLOT(APP_SID, FORECASTING_SID),
+	CONSTRAINT FK_FRCSTNG_USER_SID			FOREIGN KEY (APP_SID, CSR_USER_SID) REFERENCES CSR.CSR_USER(APP_SID, CSR_USER_SID)
+);
+
+CREATE TABLE csrimp.forecasting_email_sub (
+	csrimp_session_id		NUMBER(10, 0) DEFAULT SYS_CONTEXT('SECURITY', 'CSRIMP_SESSION_ID') NOT NULL,
+	forecasting_sid			NUMBER(10, 0) NOT NULL,
+	csr_user_sid			NUMBER(10, 0) NOT NULL,
+	CONSTRAINT PK_FRCSTNG_EMAIL				PRIMARY KEY (CSRIMP_SESSION_ID, FORECASTING_SID, CSR_USER_SID),
+	CONSTRAINT FK_FRCSTNG_EMAIL_SESSION		FOREIGN KEY (CSRIMP_SESSION_ID) REFERENCES CSRIMP.CSRIMP_SESSION (CSRIMP_SESSION_ID) ON DELETE CASCADE
+);
+
+-- Alter tables
+ALTER TABLE csr.customer
+ADD forecasting_slots NUMBER(10) DEFAULT 0 NOT NULL;
+
+ALTER TABLE csrimp.customer
+ADD forecasting_slots NUMBER(10) NOT NULL;
+
+
+-- *** Grants ***
+GRANT SELECT, INSERT, UPDATE ON csr.forecasting_email_sub TO csrimp;
+
+-- ** Cross schema constraints ***
+
+-- *** Views ***
+-- Please paste the content of the view and add a comment referencing the path of the create_views file which will contain your view changes.
+
+-- *** Data changes ***
+-- RLS
+
+-- Data
+BEGIN
+	INSERT INTO csr.module (module_id, module_name, enable_sp, description, license_warning)
+	VALUES (89, 'Forecasting', 'EnableForecasting', 'Enables Forecasting', 1);
+END;
+/
+
+CREATE INDEX CSR.IX_FORECASTING_E_CSR_USER_SID ON CSR.FORECASTING_EMAIL_SUB (APP_SID, CSR_USER_SID);
+CREATE INDEX CSR.IX_FORECASTING_I_IND_SID ON CSR.FORECASTING_INDICATOR (APP_SID, IND_SID);
+CREATE INDEX CSR.IX_FORECASTING_R_REGION_SID ON CSR.FORECASTING_REGION (APP_SID, REGION_SID);
+CREATE INDEX CSR.IX_FORECASTING_R_IND_SID ON CSR.FORECASTING_RULE (APP_SID, IND_SID);
+CREATE INDEX CSR.IX_FORECASTING_RU_REGION_SID ON CSR.FORECASTING_RULE (APP_SID, REGION_SID);
+CREATE INDEX CSR.IX_FORECASTING_S_PERIOD_SET_ID ON CSR.FORECASTING_SLOT (APP_SID, PERIOD_SET_ID, PERIOD_INTERVAL_ID);
+CREATE INDEX CSR.IX_FORECASTING_S_LAST_REFRESH_ ON CSR.FORECASTING_SLOT (APP_SID, LAST_REFRESH_USER_SID);
+CREATE INDEX CSR.IX_FORECASTING_S_SCENARIO_RUN_ ON CSR.FORECASTING_SLOT (APP_SID, SCENARIO_RUN_SID);
+CREATE INDEX CSR.IX_FORECASTING_S_CREATED_BY_US ON CSR.FORECASTING_SLOT (APP_SID, CREATED_BY_USER_SID);
+CREATE INDEX CSR.IX_FORECASTING_V_IND_SID ON CSR.FORECASTING_VAL (APP_SID, IND_SID);
+CREATE INDEX CSR.IX_FORECASTING_V_REGION_SID ON CSR.FORECASTING_VAL (APP_SID, REGION_SID);
+
+-- ** New package grants **
+
+-- *** Conditional Packages ***
+
+-- *** Packages ***
+@../forecasting_pkg
+@../like_for_like_pkg
+@../customer_body
+@../enable_body
+@../forecasting_body
+@../schema_body
+@../csrimp/imp_body
+@../like_for_like_body
+@../csr_user_body
+@../indicator_body
+@../region_body
+
+@update_tail

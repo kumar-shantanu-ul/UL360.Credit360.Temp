@@ -1,0 +1,115 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=690
+@update_header
+
+connect chain/chain@&_CONNECT_IDENTIFIER
+
+CREATE OR REPLACE VIEW chain.v$company_user AS
+  SELECT cug.app_sid, cug.company_sid, vcu.user_sid, vcu.email, vcu.user_name, 
+		vcu.full_name, vcu.friendly_name, vcu.phone_number, vcu.job_title,   
+		vcu.visibility_id, vcu.registration_status_id, vcu.details_confirmed
+    FROM v$company_user_group cug, v$chain_user vcu, security.group_members gm
+   WHERE cug.app_sid = SYS_CONTEXT('SECURITY', 'APP')
+     AND cug.app_sid = vcu.app_sid
+     AND cug.user_group_sid = gm.group_sid_id
+     AND vcu.user_sid = gm.member_sid_id
+;
+
+connect csr/csr@&_CONNECT_IDENTIFIER
+
+GRANT SELECT, REFERENCES, DELETE ON CSR.POSTIT TO DONATIONS;
+GRANT SELECT, REFERENCES ON CSR.POSTIT_FILE TO DONATIONS;
+GRANT EXECUTE ON CSR.POSTIT_PKG TO DONATIONS;
+GRANT SELECT ON CSR.V$POSTIT TO DONATIONS;
+ 
+connect donations/donations@&_CONNECT_IDENTIFIER
+
+GRANT SELECT, REFERENCES ON DONATIONS.RECIPIENT TO CSR;
+GRANT EXECUTE ON donations.recipient_pkg TO CSR;
+
+ALTER TABLE donations.DONATION_STATUS ADD (
+	SHOW_FOR_NEW_DONATION	NUMBER(1) DEFAULT 1 NOT NULL,
+	CONSTRAINT CK_SHOW_STATUS_FOR_NEW_DON CHECK (SHOW_FOR_NEW_DONATION IN (0,1))
+);
+
+
+CREATE TABLE donations.RECIPIENT_POSTIT(
+    APP_SID          NUMBER(10, 0)    DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    RECIPIENT_SID    NUMBER(10, 0)    NOT NULL,
+    POSTIT_ID        NUMBER(10, 0)    NOT NULL,
+    CONSTRAINT PK_RECIPIENT_POSTIT PRIMARY KEY (APP_SID, RECIPIENT_SID, POSTIT_ID)
+);
+
+
+ALTER TABLE donations.RECIPIENT_POSTIT ADD CONSTRAINT FK_RCP_RCP_POSTIT 
+    FOREIGN KEY (APP_SID, RECIPIENT_SID)
+    REFERENCES donations.RECIPIENT(APP_SID, RECIPIENT_SID);
+
+ALTER TABLE donations.RECIPIENT_POSTIT ADD CONSTRAINT FK_RCP_POSTIT 
+    FOREIGN KEY (APP_SID, POSTIT_ID)
+    REFERENCES CSR.POSTIT(APP_SID, POSTIT_ID) ON DELETE CASCADE;
+
+
+
+connect csr/csr@&_CONNECT_IDENTIFIER
+
+ALTER TABLE csr.SUPPLIER ADD (
+	RECIPIENT_SID	NUMBER(10)
+);
+
+ALTER TABLE csr.SUPPLIER ADD CONSTRAINT FK_SUPPLIER_RECIPIENT
+    FOREIGN KEY (APP_SID, RECIPIENT_SID)
+    REFERENCES DONATIONS.RECIPIENT(APP_SID, RECIPIENT_SID);
+    
+
+GRANT UPDATE, SELECT, REFERENCES ON CSR.SUPPLIER TO DONATIONS;
+
+ALTER TABLE csr.QUICK_SURVEY_RESPONSE DROP COLUMN COMPANY_SID;
+
+-- this is unique too (since survey_response_id is unique), but we want to stick
+-- an FK constraint in, so we need a unique key to tie this back to.
+ALTER TABLE csr.QUICK_SURVEY_RESPONSE ADD CONSTRAINT UK_QUICK_SURVEY_RESPONSE UNIQUE (APP_SID, SURVEY_RESPONSE_ID, SURVEY_SID);
+--CONSTRAINT UK_SUPPLIER_SURVEY_RESPONSE UNIQUE (APP_SID, SURVEY_SID, SURVEY_RESPONSE_ID);
+
+CREATE TABLE csr.SUPPLIER_SURVEY_RESPONSE (
+	APP_SID					NUMBER(10) DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+	SUPPLIER_SID			NUMBER(10) DEFAULT SYS_CONTEXT('SECURITY', 'CHAIN_COMPANY'),
+	SURVEY_SID				NUMBER(10) NOT NULL,
+	SURVEY_RESPONSE_ID 		NUMBER(10) NOT NULL,
+	CONSTRAINT PK_SUPPLIER_SURVEY_RESPONSE PRIMARY KEY (APP_SID, SUPPLIER_SID, SURVEY_SID)
+);
+
+ALTER TABLE csr.SUPPLIER_SURVEY_RESPONSE ADD CONSTRAINT FK_SUPP_SURV_RESP_QK_SURV_RESP
+    FOREIGN KEY (APP_SID, SURVEY_RESPONSE_ID, SURVEY_SID)
+    REFERENCES csr.QUICK_SURVEY_RESPONSE(APP_SID, SURVEY_RESPONSE_ID, SURVEY_SID);
+    
+ALTER TABLE csr.SUPPLIER_SURVEY_RESPONSE ADD CONSTRAINT FK_SUPP_SURV_RESP_SUPPLIER
+    FOREIGN KEY (APP_SID, SUPPLIER_SID)
+    REFERENCES csr.SUPPLIER(APP_SID, SUPPLIER_SID);
+    
+    
+    
+@..\quick_survey_pkg.sql
+@..\supplier_pkg.sql
+
+connect donations/donations@&_CONNECT_IDENTIFIER    
+@..\donations\recipient_pkg.sql
+ 
+connect chain/chain@&_CONNECT_IDENTIFIER    
+@..\chain\chain_link_pkg.sql
+
+connect csr/csr@&_CONNECT_IDENTIFIER
+@..\supplier_body.sql
+@..\quick_survey_body.sql
+
+connect chain/chain@&_CONNECT_IDENTIFIER    
+@..\chain\company_body.sql
+@..\chain\chain_link_body.sql
+
+connect donations/donations@&_CONNECT_IDENTIFIER    
+@..\donations\recipient_body.sql
+@..\donations\status_body.sql
+
+
+connect csr/csr@&_CONNECT_IDENTIFIER
+@update_tail

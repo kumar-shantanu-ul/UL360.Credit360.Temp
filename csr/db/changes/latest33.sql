@@ -1,0 +1,39 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=33
+@update_header
+
+-- 
+-- TABLE: VAL_FLAG 
+--
+
+CREATE TABLE VAL_FLAG(
+    IND_SID    NUMBER(10, 0)    NOT NULL,
+    FLAG       NUMBER(10, 0)    NOT NULL,
+    VAL_ID     NUMBER(10, 0)    NOT NULL,
+    PCT        NUMBER(10, 2)    NOT NULL,
+    CONSTRAINT PK160 PRIMARY KEY (IND_SID, FLAG, VAL_ID)
+)
+;
+
+-- 
+-- TABLE: VAL_FLAG 
+--
+
+ALTER TABLE VAL_FLAG ADD CONSTRAINT RefVAL258 
+    FOREIGN KEY (VAL_ID)
+    REFERENCES VAL(VAL_ID)
+;
+
+ALTER TABLE VAL_FLAG ADD CONSTRAINT RefIND_FLAG259 
+    FOREIGN KEY (IND_SID, FLAG)
+    REFERENCES IND_FLAG(IND_SID, FLAG)
+;
+
+ALTER TABLE IND_FLAG ADD (
+    ACCURACY_WEIGHTING        NUMBER(10, 0)     NULL
+);
+
+
+
+
+@update_tail

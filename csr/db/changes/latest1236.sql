@@ -1,0 +1,17 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=1236
+@update_header
+
+ALTER TABLE CSR.ALL_METER ADD (
+	APPPROVED_BY_SID                  NUMBER(10, 0),
+    APPROVED_DTM                      DATE
+);
+
+ALTER TABLE CSR.ALL_METER ADD CONSTRAINT FK_USER_METER_APPROVED 
+    FOREIGN KEY (APP_SID, APPPROVED_BY_SID)
+    REFERENCES CSR.CSR_USER(APP_SID, CSR_USER_SID)
+;
+
+CREATE INDEX CSR.IX_USER_METER_APPROVED ON CSR.ALL_METER (APP_SID, APPPROVED_BY_SID);
+
+@update_tail

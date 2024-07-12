@@ -1,0 +1,24 @@
+grant execute on supplier.alert_pkg to web_user;
+grant execute on supplier.audit_pkg to web_user;
+grant execute on supplier.company_part_pkg to web_user;
+grant execute on supplier.company_pkg to web_user;
+grant execute on supplier.document_pkg to web_user;
+grant execute on supplier.options_pkg to web_user;
+grant execute on supplier.product_part_pkg to web_user;
+grant execute on supplier.product_pkg to web_user;
+grant execute on supplier.questionnaire_pkg to web_user;
+grant execute on supplier.report_pkg to web_user;
+grant execute on supplier.sales_pkg to web_user;
+grant execute on supplier.supplier_user_pkg to web_user;
+grant execute on supplier.tag_pkg to web_user;
+grant execute on supplier.country_pkg to web_user;
+
+grant execute on supplier.chain_company_pkg to web_user;
+grant execute on supplier.company_group_pkg to web_user;
+grant execute on supplier.company_user_pkg to web_user;
+grant execute on supplier.contact_pkg to web_user;
+grant execute on supplier.invite_pkg to web_user;
+grant execute on supplier.message_pkg to web_user;
+grant execute on supplier.registration_pkg to web_user;
+grant execute on supplier.chain_questionnaire_pkg to web_user;
+grant execute on supplier.currency_pkg to web_user;

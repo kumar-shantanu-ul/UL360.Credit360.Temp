@@ -1,0 +1,58 @@
+
+-- Create the customer_filter_flag table
+CREATE TABLE CUSTOMER_FILTER_FLAG(
+    CSR_ROOT_SID              NUMBER(10, 0)    NOT NULL,
+    RECIPIENT_REGION_GROUP    NUMBER(1, 0)     NOT NULL,
+    BROWSE_REGION_GROUP       NUMBER(1, 0)     NOT NULL,
+    REPORT_REGION_GROUP       NUMBER(1, 0)     NOT NULL,
+    CONSTRAINT PK72 PRIMARY KEY (CSR_ROOT_SID)
+);
+
+-- Populate the customer_filter_flag table
+BEGIN
+	INSERT INTO customer_filter_flag
+		(csr_root_sid, recipient_region_group, browse_region_group, report_region_group)
+		(SELECT csr_root_sid, filter_recipient_regiongp, 1, 0 FROM csr.customer);
+END;
+/
+
+COMMIT;
+
+-- Drop the filter_recipient_regiongp flag form the customer table in csr
+ALTER TABLE csr.customer
+	DROP COLUMN filter_recipient_regiongp;
+
+
+--
+-- Add exchange rates
+--
+
+ALTER TABLE BUDGET ADD (
+	EXCHANGE_RATE	NUMBER(10, 4)	NULL
+);
+
+UPDATE BUDGET SET EXCHANGE_RATE = 1;
+COMMIT;
+
+ALTER TABLE BUDGET MODIFY (
+	EXCHANGE_RATE	NUMBER(10, 4)	NOT NULL
+);
+
+CREATE TABLE CUSTOMER_DEFAULT_EXRATE(
+    CSR_ROOT_SID     NUMBER(10, 0)    NOT NULL,
+    CURRENCY_CODE    VARCHAR2(4)      NOT NULL,
+    EXCHANGE_RATE    NUMBER(10, 4)    NOT NULL,
+    CONSTRAINT PK74 PRIMARY KEY (CSR_ROOT_SID, CURRENCY_CODE)
+);
+
+ALTER TABLE CUSTOMER_DEFAULT_EXRATE ADD CONSTRAINT RefCURRENCY105 
+    FOREIGN KEY (CURRENCY_CODE)
+    REFERENCES CURRENCY(CURRENCY_CODE)
+;
+
+INSERT INTO CUSTOMER_DEFAULT_EXRATE
+	(CSR_ROOT_SID, CURRENCY_CODE, EXCHANGE_RATE)
+		(SELECT CSR_ROOT_SID, CURRENCY_CODE, 1
+		   FROM CSR.CUSTOMER, CURRENCY);
+COMMIT;
+

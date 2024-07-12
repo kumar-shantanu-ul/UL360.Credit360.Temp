@@ -1,0 +1,253 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=1229
+@update_header
+
+CREATE SEQUENCE CT.PS_CATEGORY_ID_SEQ
+    START WITH 1
+    INCREMENT BY 1
+    NOMINVALUE
+    NOMAXVALUE
+    nocycle
+    noorder;
+
+CREATE SEQUENCE CT.PS_SEGMENT_ID_SEQ
+    START WITH 1
+    INCREMENT BY 1
+    NOMINVALUE
+    NOMAXVALUE
+    nocycle
+    noorder;
+
+CREATE SEQUENCE CT.PS_FAMILY_ID_SEQ
+    START WITH 1
+    INCREMENT BY 1
+    NOMINVALUE
+    NOMAXVALUE
+    nocycle
+    noorder;
+
+CREATE SEQUENCE CT.PS_CLASS_ID_SEQ
+    START WITH 1
+    INCREMENT BY 1
+    NOMINVALUE
+    NOMAXVALUE
+    nocycle
+    noorder;
+
+CREATE SEQUENCE CT.PS_BRICK_ID_SEQ
+    START WITH 1
+    INCREMENT BY 1
+    NOMINVALUE
+    NOMAXVALUE
+    nocycle
+    noorder;
+
+CREATE TABLE CT.PS_IMPORT (
+    CATEGORY VARCHAR2(1024) NOT NULL,
+    SEGMENT_CODE VARCHAR2(1024) NOT NULL,
+    SEGMENT VARCHAR2(1024) NOT NULL,
+    FAMILY_CODE VARCHAR2(1024),
+    FAMILY VARCHAR2(1024),
+    CLASS_CODE VARCHAR2(1024),
+    CLASS VARCHAR2(1024),
+    BRICK_CODE VARCHAR2(1024),
+    BRICK VARCHAR2(1024),
+    EIO_CODE VARCHAR2(1024) NOT NULL,
+    EIO VARCHAR2(1024) NOT NULL,
+    EIO_RAW VARCHAR2(1024) NOT NULL,
+    CORE_ATTRIBUTE_TYPE VARCHAR2(1024),
+    CORE_ATTRIBUTE VARCHAR2(1024),
+    CORE_ATTRIBUTE_RAW VARCHAR2(1024)
+);
+
+
+CREATE TABLE CT.PS_ATTRIBUTE_SOURCE (
+    PS_ATTRIBUTE_SOURCE_ID NUMBER(10) NOT NULL,
+    DESCRIPTION VARCHAR2(1024) NOT NULL,
+    CONSTRAINT PK_PS_AS PRIMARY KEY (PS_ATTRIBUTE_SOURCE_ID)
+);
+
+
+CREATE TABLE CT.PS_STEM_METHOD (
+    PS_STEM_METHOD_ID NUMBER(10) NOT NULL,
+    DESCRIPTION VARCHAR2(1024) NOT NULL,
+    CONSTRAINT PK_PS_SM PRIMARY KEY (PS_STEM_METHOD_ID)
+);
+
+
+
+CREATE TABLE CT.PS_CATEGORY (
+    PS_CATEGORY_ID NUMBER(10) NOT NULL,
+    DESCRIPTION VARCHAR2(1024) NOT NULL,
+    CONSTRAINT PK_PS_CT PRIMARY KEY (PS_CATEGORY_ID),
+    CONSTRAINT TUC_PS_CT_DESCRIPTION UNIQUE (DESCRIPTION)
+);
+
+
+CREATE TABLE CT.PS_SEGMENT (
+    PS_SEGMENT_ID NUMBER(10) NOT NULL,
+    DESCRIPTION VARCHAR2(1024) NOT NULL,
+    CONSTRAINT PK_PS_SG PRIMARY KEY (PS_SEGMENT_ID),
+    CONSTRAINT TUC_PS_SG_DESCRIPTION UNIQUE (DESCRIPTION)
+);
+
+
+CREATE TABLE CT.PS_FAMILY (
+    PS_FAMILY_ID NUMBER(10) NOT NULL,
+    DESCRIPTION VARCHAR2(1024) NOT NULL,
+    PS_SEGMENT_ID NUMBER(10) NOT NULL,
+    CONSTRAINT PK_PS_FM PRIMARY KEY (PS_FAMILY_ID),
+    CONSTRAINT TUC_PS_FM_DESCRIPTION UNIQUE (DESCRIPTION)
+);
+
+
+
+CREATE TABLE CT.PS_CLASS (
+    PS_CLASS_ID NUMBER(10) NOT NULL,
+    DESCRIPTION VARCHAR2(1024) NOT NULL,
+    PS_FAMILY_ID NUMBER(10) NOT NULL,
+    CONSTRAINT PK_PS_CLS PRIMARY KEY (PS_CLASS_ID),
+    CONSTRAINT TUC_PS_CLS_DESCRIPTION UNIQUE (DESCRIPTION)
+);
+
+
+
+
+CREATE TABLE CT.PS_BRICK (
+    PS_BRICK_ID NUMBER(10) NOT NULL,
+    DESCRIPTION VARCHAR2(1024) NOT NULL,
+    PS_CLASS_ID NUMBER(10) NOT NULL,
+    PS_CATEGORY_ID NUMBER(10) NOT NULL,
+    EIO_ID NUMBER(10) NOT NULL,
+    CONSTRAINT PK_PS_BRK PRIMARY KEY (PS_BRICK_ID),
+    CONSTRAINT TUC_PS_BRK_DESCRIPTION UNIQUE (DESCRIPTION)
+);
+
+CREATE TABLE CT.PS_ATTRIBUTE (
+    PS_BRICK_ID NUMBER(10) NOT NULL,
+    PS_STEM_METHOD_ID NUMBER(10) NOT NULL,
+    PS_ATTRIBUTE_SOURCE_ID NUMBER(10) NOT NULL,
+    ATTRIBUTE VARCHAR2(1024) NOT NULL,
+    WORDS_IN_PHRASE NUMBER(10) NOT NULL,
+    CONSTRAINT PK_PS_ATT PRIMARY KEY (PS_BRICK_ID, PS_STEM_METHOD_ID, PS_ATTRIBUTE_SOURCE_ID, ATTRIBUTE)
+);
+
+
+CREATE TABLE CT.PS_SUPPLIER_EIO_FREQ (
+    APP_SID NUMBER(10) NOT NULL,
+    SUPPLIER_ID NUMBER(10) NOT NULL,
+    EIO_ID NUMBER(10) NOT NULL,
+    MANUAL_COUNT NUMBER(10) DEFAULT 0 NOT NULL,
+    CONSTRAINT PK_PS_SEF PRIMARY KEY (APP_SID, SUPPLIER_ID, EIO_ID)
+);
+
+ALTER TABLE CT.PS_ATTRIBUTE ADD CONSTRAINT PS_AS_PS_ATT 
+    FOREIGN KEY (PS_ATTRIBUTE_SOURCE_ID) REFERENCES CT.PS_ATTRIBUTE_SOURCE (PS_ATTRIBUTE_SOURCE_ID);
+
+ALTER TABLE CT.PS_ATTRIBUTE ADD CONSTRAINT PS_SM_PS_ATT 
+    FOREIGN KEY (PS_STEM_METHOD_ID) REFERENCES CT.PS_STEM_METHOD (PS_STEM_METHOD_ID);
+
+ALTER TABLE CT.PS_ATTRIBUTE ADD CONSTRAINT PS_BRK_PS_ATT 
+    FOREIGN KEY (PS_BRICK_ID) REFERENCES CT.PS_BRICK (PS_BRICK_ID);
+
+ALTER TABLE CT.PS_FAMILY ADD CONSTRAINT PS_SG_PS_FM 
+    FOREIGN KEY (PS_SEGMENT_ID) REFERENCES CT.PS_SEGMENT (PS_SEGMENT_ID);
+
+ALTER TABLE CT.PS_CLASS ADD CONSTRAINT PS_FM_PS_CLS 
+    FOREIGN KEY (PS_FAMILY_ID) REFERENCES CT.PS_FAMILY (PS_FAMILY_ID);
+
+ALTER TABLE CT.PS_BRICK ADD CONSTRAINT PS_CLS_PS_BRK 
+    FOREIGN KEY (PS_CLASS_ID) REFERENCES CT.PS_CLASS (PS_CLASS_ID);
+
+ALTER TABLE CT.PS_BRICK ADD CONSTRAINT PS_CT_PS_BRK 
+    FOREIGN KEY (PS_CATEGORY_ID) REFERENCES CT.PS_CATEGORY (PS_CATEGORY_ID);
+
+ALTER TABLE CT.PS_BRICK ADD CONSTRAINT EIO_PS_BRK 
+    FOREIGN KEY (EIO_ID) REFERENCES CT.EIO (EIO_ID);
+
+ALTER TABLE CT.PS_SUPPLIER_EIO_FREQ ADD CONSTRAINT SUPPLIER_PS_SEF 
+    FOREIGN KEY (APP_SID, SUPPLIER_ID) REFERENCES CT.SUPPLIER (APP_SID,SUPPLIER_ID);
+
+ALTER TABLE CT.PS_SUPPLIER_EIO_FREQ ADD CONSTRAINT EIO_PS_SEF 
+    FOREIGN KEY (EIO_ID) REFERENCES CT.EIO (EIO_ID);
+
+	
+create or replace package ct.stemmer_pkg as
+	procedure dummy;
+end;
+/
+create or replace package body ct.stemmer_pkg as
+	procedure dummy
+	as
+	begin
+		null;
+	end;
+end;
+/
+
+create or replace package ct.classification_pkg as
+	procedure dummy;
+end;
+/
+create or replace package body ct.classification_pkg as
+	procedure dummy
+	as
+	begin
+		null;
+	end;
+end;
+/
+
+	
+grant execute on ct.stemmer_pkg to web_user;
+grant execute on ct.classification_pkg to web_user;
+	
+CREATE OR REPLACE VIEW ct.v$ps_flat_tree
+(
+	ps_category_id,
+    ps_category,
+	ps_segment_id,
+    ps_segment,
+	ps_family_id, 
+    ps_family,    
+	ps_class_id,
+    ps_class,    
+	ps_brick_id,
+    ps_brick,  
+	eio_id,
+	eio,
+	eio_long
+)
+AS
+SELECT 
+	psct.ps_category_id,
+    psct.description ps_category,
+	pss.ps_segment_id,   
+    pss.description ps_segment,
+	psf.ps_family_id, 
+    psf.description ps_family,    
+	psc.ps_class_id,  
+    psc.description ps_class,    
+	psb.ps_brick_id,
+    psb.description ps_brick,  
+	eio.eio_id,
+	eio.description eio, 
+	eio.old_description eio_long
+FROM 
+    ps_segment pss 
+    JOIN ps_family psf ON pss.ps_segment_id = psf.ps_segment_id 
+    JOIN ps_class psc ON psf.ps_family_id = psc.ps_family_id
+    JOIN ps_brick psb ON psc.ps_class_id = psb.ps_class_id
+    JOIN ps_category psct ON psb.ps_category_id = psct.ps_category_id
+    JOIN eio eio ON psb.eio_id = eio.eio_id;
+
+
+@../ct/stemmer_pkg
+@../ct/stemmer_body
+@../ct/classification_pkg
+@../ct/classification_body
+
+PROMPT - NOTE: Data is loaded for these tables using C:\cvs\csr\tools\CarbonTrust\prodServMapping\prodServTreeLoader
+PROMPT - NOTE: Data is processed for these tables using C:\cvs\csr\tools\CarbonTrust\prodServMapping\prodServTreeStemmer
+
+@update_tail

@@ -1,0 +1,10 @@
+create index supplier.ix_nn_company_ri_company_risk_ on supplier.nn_company_risk (company_risk_type_id);
+create index supplier.ix_nn_manufactur_country_code on supplier.nn_manufacturing_site (country_code);
+create index supplier.ix_nn_supplier_a_document_grou on supplier.nn_supplier_answers (document_group_id);
+create index supplier.ix_np_component__country_of_or on supplier.np_component_description (country_of_origin);
+create index supplier.ix_np_component__np_kingdom_id on supplier.np_component_description (np_kingdom_id);
+create index supplier.ix_np_component__np_production on supplier.np_component_description (np_production_process_group_id);
+create index supplier.ix_np_part_evide_document_grou on supplier.np_part_evidence (document_group_id);
+create index supplier.ix_np_part_evide_np_evidence_c on supplier.np_part_evidence (np_evidence_class_id);
+create index supplier.ix_np_part_evide_np_evidence_t on supplier.np_part_evidence (np_evidence_type_id);
+create index supplier.ix_np_pp_group_m_np_production on supplier.np_pp_group_member (np_production_process_id);

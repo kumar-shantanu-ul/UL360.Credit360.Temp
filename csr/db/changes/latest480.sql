@@ -1,0 +1,21 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=480
+@update_header
+
+ALTER TABLE factor
+	ADD EGRID_REF VARCHAR2(4);
+
+ALTER TABLE std_factor
+	ADD EGRID_REF VARCHAR2(4);
+
+ALTER TABLE CSR.FACTOR ADD CONSTRAINT RefEGRID1728 
+    FOREIGN KEY (EGRID_REF)
+    REFERENCES EGRID(EGRID_REF)
+;
+
+ALTER TABLE CSR.STD_FACTOR ADD CONSTRAINT RefEGRID1729 
+    FOREIGN KEY (EGRID_REF)
+    REFERENCES EGRID(EGRID_REF)
+;
+
+@update_tail

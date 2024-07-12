@@ -1,0 +1,14 @@
+-- This file contains schema changes waiting to be entered into donations.dm1
+
+-- latest1819
+
+ALTER TABLE DONATIONS.CUSTOMER_OPTIONS ADD FC_BEING_PROCESSED_TAG_ID NUMBER(10, 0);
+
+ALTER TABLE DONATIONS.CUSTOMER_OPTIONS ADD CONSTRAINT FK_FC_BEING_PROCESSED_TAG_ID
+    FOREIGN KEY (APP_SID, FC_BEING_PROCESSED_TAG_ID) REFERENCES DONATIONS.TAG(APP_SID, TAG_ID);
+
+-- End latest1819
+
+-- latest1886
+ALTER TABLE donations.customer_options ADD fc_grid_def_sort_column VARCHAR2(40);
+-- End latest1886

@@ -1,0 +1,88 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=3416
+define minor_version=4
+@update_header
+
+-- *** DDL ***
+-- Create tables
+CREATE OR REPLACE TYPE CSR.T_INITIATIVE_AGGR_VAL_DATA_ROW AS
+  OBJECT (
+	INITIATIVE_SID			NUMBER(10),
+	INITIATIVE_METRIC_ID	NUMBER(10),
+	REGION_SID				NUMBER(10),
+	START_DTM				DATE,
+	END_DTM					DATE,
+	VAL_NUMBER				NUMBER(24, 10)
+  );
+/
+
+CREATE OR REPLACE TYPE CSR.T_INITIATIVE_AGGR_VAL_DATA_TABLE AS 
+  TABLE OF CSR.T_INITIATIVE_AGGR_VAL_DATA_ROW;
+/
+
+CREATE OR REPLACE TYPE CSR.T_INITIATIVE_SID_DATA_ROW AS
+  OBJECT (
+	INITIATIVE_SID			NUMBER(10)
+  );
+/
+
+CREATE OR REPLACE TYPE CSR.T_INITIATIVE_SID_DATA_TABLE AS 
+  TABLE OF CSR.T_INITIATIVE_SID_DATA_ROW;
+/
+
+CREATE OR REPLACE TYPE CSR.T_INITIATIVE_METRIC_ID_DATA_ROW AS
+  OBJECT (
+	INITIATIVE_METRIC_ID 		NUMBER(10),
+	MEASURE_CONVERSION_ID		NUMBER(10)
+  );
+/
+
+CREATE OR REPLACE TYPE CSR.T_INITIATIVE_METRIC_ID_DATA_TABLE AS 
+  TABLE OF CSR.T_INITIATIVE_METRIC_ID_DATA_ROW;
+/
+
+CREATE OR REPLACE TYPE CSR.T_INITIATIVE_DATA_ROW AS
+  OBJECT (
+	INITIATIVE_SID			NUMBER(10),
+	FLOW_STATE_ID			NUMBER(10),
+	FLOW_STATE_LABEL		VARCHAR2(255),
+	FLOW_STATE_LOOKUP_KEY	VARCHAR2(255),
+	FLOW_STATE_COLOUR		NUMBER(10),
+	FLOW_STATE_POS			NUMBER(10),
+	IS_EDITABLE				NUMBER(1),
+	ACTIVE					NUMBER(1),
+	OWNER_SID				NUMBER(10),
+	POS						NUMBER(10)
+  )
+/
+
+CREATE OR REPLACE TYPE CSR.T_INITIATIVE_DATA_TABLE AS
+  TABLE OF CSR.T_INITIATIVE_DATA_ROW;
+/
+
+-- Alter tables
+
+-- *** Grants ***
+
+-- ** Cross schema constraints ***
+
+-- *** Views ***
+-- Please paste the content of the view.
+
+-- *** Data changes ***
+-- RLS
+
+-- Data
+
+-- ** New package grants **
+
+-- *** Conditional Packages ***
+
+-- *** Packages ***
+@../initiative_aggr_body
+@../initiative_grid_body
+@../initiative_export_body
+
+@update_tail
+
+

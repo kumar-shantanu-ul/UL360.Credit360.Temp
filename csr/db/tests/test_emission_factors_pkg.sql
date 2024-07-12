@@ -1,0 +1,47 @@
+CREATE OR REPLACE PACKAGE csr.test_emission_factors_pkg AS
+
+PROCEDURE SetUpFixture(in_site_name VARCHAR2);
+PROCEDURE SetUp;
+PROCEDURE TearDown;
+PROCEDURE TearDownFixture;
+
+PROCEDURE TestEFBase;
+PROCEDURE TestEFFactor1;
+PROCEDURE TestEFFactor2;
+PROCEDURE TestEFFactor3;
+PROCEDURE TestEFFactor4;
+PROCEDURE TestEFFactor5;
+PROCEDURE TestEFFactor6;
+
+PROCEDURE TestEFFactorExportEmptyProfile;
+PROCEDURE TestEFFactorExportStdFactor;
+PROCEDURE TestEFFactorExportCustomFactor;
+
+PROCEDURE TestEFFactorMultiProfile1;
+PROCEDURE TestEFFactorMultiProfile2;
+PROCEDURE TestEFFactorExportEgrid;
+
+PROCEDURE TestExpStdFctrWthStDtmOffst;
+PROCEDURE TestGetAllFactorsStartMonth1;
+PROCEDURE TestGetAllFactorsStartMonth5;
+
+PROCEDURE TestGetRegionFactorsMapStd;
+PROCEDURE TestGetRegionFactorsMapCustom;
+
+PROCEDURE TestCanCreateAndGetStdFactorSet;
+PROCEDURE TestCanCreateAndGetCustFactorSet;
+PROCEDURE TestCanCreateAndGetFactorType;
+PROCEDURE TestCanCreateAndGetFactorTypeList;
+PROCEDURE TestGetFactorTypeMappedPathsReturnsInfoNote;
+PROCEDURE TestGetFactorSetInfoNoteReturnsNullWhenNoInfoNoteSet;
+PROCEDURE TestUpdateStdFactorSetInfoNote;
+PROCEDURE TestUpdateCustomFactorSetInfoNote;
+
+PROCEDURE TestUnpublishStdFactorSet;
+PROCEDURE TestUnpublishStdFactorSetFailsWhenInUseBySameApp;
+PROCEDURE TestUnpublishStdFactorSetFailsWhenInUseByDifferentApp;
+
+PROCEDURE TestCKFACTORDATESConstraintWhenChangingStatusOfProfile;
+
+END test_emission_factors_pkg;
+/

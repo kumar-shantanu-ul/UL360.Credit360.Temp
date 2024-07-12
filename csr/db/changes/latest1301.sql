@@ -1,0 +1,10 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=1301
+@update_header
+
+ALTER TABLE CSRIMP.DELEGATION_IND DROP CONSTRAINT CK_DELEG_IND_VISIBLE;
+
+ALTER TABLE CSRIMP.DELEGATION_IND
+  ADD CONSTRAINT CK_DELEG_IND_VISIBLE CHECK (VISIBILITY IN ('SHOW','READONLY','HIDE', 'VALIDATE'));
+
+@update_tail

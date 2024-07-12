@@ -1,0 +1,287 @@
+
+-- Issues filter
+BEGIN
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (25, 'ISSUE_ID', 'Action ID', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (25, 'LABEL', 'Label', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (25, 'DESCRIPTION', 'Action ID', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (25, 'ISSUE_URL', 'Link to action', 0, 'Go to action');
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (25, 'REGION_DESCRIPTION', 'Associated region', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (25, 'ISSUE_TYPE_LABEL', 'Action type', 1, NULL);
+END;
+/
+
+-- Audit filter
+BEGIN
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (41, 'INTERNAL_AUDIT_SID', 'Audit ID', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (41, 'CUSTOM_AUDIT_ID', 'Audit Reference', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (41, 'REGION_DESCRIPTION', 'Region', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (41, 'AUDIT_DTM', 'Audit date', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (41, 'LABEL', 'Label', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (41, 'AUDIT_TYPE_LABEL', 'Audit type', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (41, 'FLOW_STATE_LABEL', 'Status', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (41, 'AUDIT_URL', 'Audit url', 0, 'Go to audit');
+END;
+/
+
+-- Non-compliance filter
+BEGIN
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (42, 'NON_COMPLIANCE_ID', 'Finding ID', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (42, 'CUSTOM_NON_COMPLIANCE_ID', 'Finding Reference', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (42, 'NON_COMPLIANCE_TYPE_LABEL', 'Finding type', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (42, 'LABEL', 'Label', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (42, 'DETAIL', 'Details', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (42, 'ROOT_CAUSE', 'Root cause', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (42, 'REGION_DESCRIPTION', 'Region', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (42, 'AUDIT_DTM', 'Audit date', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (42, 'AUDIT_LABEL', 'Audit label', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (42, 'AUDIT_URL', 'Audit url', 0, 'Go to audit');
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (42, 'AUDIT_TYPE_LABEL', 'Audit type', 1, NULL);
+END;
+/
+
+-- Company filter
+BEGIN
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (23, 'COMPANY_SID', 'Company ID', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (23, 'COMPANY_TYPE_LABEL', 'Company type', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (23, 'NAME', 'Company name', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (23, 'COUNTRY_NAME', 'Country', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (23, 'CITY_NAME', 'City', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (23, 'ADDRESS_1', 'Address line 1', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (23, 'ADDRESS_2', 'Address line 2', 0, NULL);
+	
+END;
+/
+
+-- Property filter
+BEGIN
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (44, 'REGION_SID', 'Region Sid', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (44, 'DESCRIPTION', 'Property description', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (44, 'PROPERTY_TYPE_LABEL', 'Site type', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (44, 'CURRENT_STATE_LABEL', 'Current property state', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (44, 'STREET_ADDR_1', 'Property street address 1', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (44, 'STREET_ADDR_2', 'Property street address 2', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (44, 'CITY', 'Property city', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (44, 'STATE', 'Property state', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (44, 'POSTCODE', 'Property postcode', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (44, 'COUNTRY_NAME', 'Property country', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (44, 'LOOKUP_KEY', 'Property lookup key', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (44, 'PROPERTY_LINK', 'Property link', 0, 'View property');
+	
+END;
+/
+-- Initiative filter
+BEGIN
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (45, 'INITIATIVE_SID', 'Initiative Sid', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (45, 'NAME', 'Name', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (45, 'REF', 'Reference', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (45, 'PROJECT_START_DTM', 'Project start date', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (45, 'PROJECT_END_DTM', 'Project end date', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (45, 'RUNNING_START_DTM', 'Running start date', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (45, 'RUNNING_END_DTM', 'Running end date', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (45, 'REGIONS', 'Region descriptions', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (45, 'SAVING_TYPE', 'Saving type', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (45, 'INITIATIVE_LINK', 'Initiative link', 0, 'View initiative');
+	
+END;
+/
+-- Business relationship filter
+BEGIN
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (53, 'BUSINESS_RELATIONSHIP_ID', 'Business relationship ID', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (53, 'TYPE_LABEL', 'Business relationship type', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (53, 'COMPANIES', 'Companies', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (53, 'PERIODS', 'Active dates', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (53, 'ACTIVE', 'Active', 1, NULL);
+END;
+/
+
+-- Dedupe processed record filter
+BEGIN
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (57, 'COMPANY_REF', 'Company ID', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (57, 'MATCHED_TO_COMPANY_NAME', 'Matched to company name', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (57, 'IMPORT_SOURCE_NAME', 'Import source name', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (57, 'CREATED_COMPANY_NAME', 'Created company name', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (57, 'BATCH_NUM', 'Batch number', 0, NULL);
+END;
+/
+
+-- Survey response filter
+BEGIN
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (54, 'SURVEY_RESPONSE_ID', 'Survey response ID', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (54, 'SURVEY_RESPONSE_URL', 'Survey response link', 0, 'View survey response');
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (54, 'SURVEY_SID', 'Survey ID', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (54, 'SURVEY_LABEL', 'Survey label', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (54, 'SUBMITTED_DTM', 'Submitted date', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (54, 'SUBMITTED_BY_USER_NAME', 'Submitted by user', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (54, 'OVERALL_SCORE', 'Overall score', 0, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (54, 'SCORE_THRESHOLD_DESCRIPTION', 'Score threshold', 1, NULL);
+	
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (54, 'FLOW_STATE_LABEL', 'Status', 1, NULL);
+END;
+/
+
+-- Products list filter alerts
+BEGIN
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (56, 'PRODUCT_ID', 'Product Id', 0, NULL);
+
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (56, 'PRODUCT_TYPE_ID', 'Product Type Id', 0, NULL);
+
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (56, 'PRODUCT_TYPE', 'Product Type', 1, NULL);
+
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (56, 'COMPANY', 'Company', 1, NULL);
+
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (56, 'IS_ACTIVE', 'Active', 0, NULL);
+
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (56, 'PRODUCT_NAME', 'Product Name', 1, NULL);
+
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (56, 'COMPANY_SID', 'Company Sid', 0, NULL);
+
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (56, 'PRODUCT_REF', 'Product Reference', 0, NULL);
+
+	INSERT INTO chain.saved_filter_alert_param (CARD_GROUP_ID, FIELD_NAME, DESCRIPTION, TRANSLATABLE, LINK_TEXT)
+	VALUES (56, 'LOOKUP_KEY', 'Lookup Key', 0, NULL);
+END;
+/

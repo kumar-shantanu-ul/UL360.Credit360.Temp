@@ -1,0 +1,21 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=811
+@update_header
+
+
+CREATE TABLE CSR.IND_VALIDATION_RULE (
+	APP_SID		NUMBER(10)		DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+	IND_SID		NUMBER(10) 		NOT NULL,
+	EXPR		VARCHAR2(2000)	NOT NULL,
+	MESSAGE		VARCHAR2(2000)	NOT NULL
+);
+
+
+ALTER TABLE CSR.IND_VALIDATION_RULE ADD CONSTRAINT FK_IND_VAL_RULE_IND
+    FOREIGN KEY (APP_SID, IND_SID)
+    REFERENCES CSR.IND(APP_SID, IND_SID);
+
+@../delegation_pkg
+@../delegation_body
+
+@update_tail

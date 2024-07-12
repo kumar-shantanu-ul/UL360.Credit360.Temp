@@ -1,0 +1,33 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=3150
+define minor_version=21
+@update_header
+
+-- *** DDL ***
+-- Create tables
+
+-- Alter tables
+
+-- *** Grants ***
+GRANT EXECUTE ON surveys.survey_pkg to csr;
+GRANT INSERT ON security.web_resource to surveys;
+
+-- ** Cross schema constraints ***
+
+-- *** Views ***
+-- Please paste the content of the view.
+
+-- *** Data changes ***
+-- RLS
+
+-- Data
+
+-- ** New package grants **
+
+-- *** Conditional Packages ***
+
+-- *** Packages ***
+--@../surveys/survey_pkg
+--@../surveys/survey_body
+
+@update_tail

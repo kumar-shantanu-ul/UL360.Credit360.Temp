@@ -1,0 +1,19 @@
+CREATE OR REPLACE PACKAGE csr.test_region_pkg AS
+
+PROCEDURE SetUpFixture(in_site_name VARCHAR2);
+PROCEDURE SetUp;
+
+PROCEDURE TestGetTreeWithDepth;
+PROCEDURE TestGetTreeWithDepthAndSecondaryTreeTag;
+PROCEDURE TestGetTreeWithDepthAndSecondaryTreeTagGroup;
+PROCEDURE Test_MoveRegion_MovingRegionWithGeoLocation_InheritsParentGeoDetails;
+PROCEDURE Test_MoveRegion_MovingGeoRegionUnderDifferentCountry_ShouldBePrevented;
+PROCEDURE TestGetSystemManagedRegion;
+PROCEDURE TestGetSystemManagedRegionWhenIsNotSystemManaged;
+
+PROCEDURE TearDown;
+PROCEDURE TearDownFixture;
+
+
+END test_region_pkg;
+/

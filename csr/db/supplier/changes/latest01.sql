@@ -1,0 +1,21 @@
+
+
+-- 
+-- TABLE: VERSION 
+--
+
+CREATE TABLE VERSION(
+    DB_VERSION    NUMBER(10, 0)    NOT NULL
+)
+;
+
+INSERT INTO VERSION VALUES (1);
+
+
+COMMIT;
+
+PROMPT
+PROMPT ================== UPDATED OK ========================
+EXIT
+
+

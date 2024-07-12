@@ -1,0 +1,24 @@
+CREATE OR REPLACE PACKAGE SUPPLIER.alert_pkg
+IS
+
+-- week days as defined by .NET DayOfWeek enumeration
+DAY_SUNDAY		CONSTANT NUMBER(10) := 0;
+DAY_MONDAY		CONSTANT NUMBER(10) := 1;
+DAY_TUESDAY		CONSTANT NUMBER(10) := 2;
+DAY_WEDNESDAY	CONSTANT NUMBER(10) := 3;
+DAY_THURSDAY	CONSTANT NUMBER(10) := 4;
+DAY_FRIDAY		CONSTANT NUMBER(10) := 5;
+DAY_SATURDAY	CONSTANT NUMBER(10) := 6;
+
+PROCEDURE GetAlertSchedules(
+	out_cur				OUT	SYS_REFCURSOR
+);
+
+PROCEDURE GetUsersToRemind(
+	in_app_sid		IN security_pkg.T_SID_ID,
+	out_cur				OUT security_pkg.T_OUTPUT_CUR
+);
+
+END alert_pkg;
+/
+

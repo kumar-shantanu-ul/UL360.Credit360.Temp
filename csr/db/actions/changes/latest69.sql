@@ -1,0 +1,18 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=69
+@update_header
+
+ALTER TABLE IND_TEMPLATE ADD (
+	PERIOD                 NUMBER(10, 0)
+);
+
+ALTER TABLE PROJECT_IND_TEMPLATE ADD (
+	SAVING_TEMPLATE_ID     NUMBER(10, 0)
+);
+
+ALTER TABLE PROJECT_IND_TEMPLATE ADD CONSTRAINT RefIND_TEMPLATE233 
+    FOREIGN KEY (APP_SID, SAVING_TEMPLATE_ID)
+    REFERENCES IND_TEMPLATE(APP_SID, IND_TEMPLATE_ID)
+;
+	
+@update_tail

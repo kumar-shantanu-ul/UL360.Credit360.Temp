@@ -1,0 +1,21 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=36
+@update_header
+
+CREATE TABLE AGGR_TASK_PERIOD_OVERRIDE(
+    TASK_SID             NUMBER(10, 0)    NOT NULL,
+    START_DTM            DATE             NOT NULL,
+    REGION_SID           NUMBER(10, 0)    NOT NULL,
+    OVERRIDDEN_BY_SID    NUMBER(10, 0)    NOT NULL,
+    OVERRIDDEN_DTM       DATE             NOT NULL,
+    REASON               CLOB             NOT NULL,
+    CONSTRAINT PK78 PRIMARY KEY (TASK_SID, START_DTM, REGION_SID)
+)
+;
+
+ALTER TABLE AGGR_TASK_PERIOD_OVERRIDE ADD CONSTRAINT RefAGGR_TASK_PERIOD100 
+    FOREIGN KEY (TASK_SID, START_DTM, REGION_SID)
+    REFERENCES AGGR_TASK_PERIOD(TASK_SID, START_DTM, REGION_SID)
+;
+
+@update_tail

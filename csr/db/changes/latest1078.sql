@@ -1,0 +1,154 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=1078
+@update_header
+
+UPDATE chain.default_message_definition
+   SET completed_template = 'Acknowledged by {completedByUserFullName} {relCompletedDtm}'
+ WHERE completed_template = 'Acknowleded by {completedByUserFullName} {relCompletedDtm}';
+
+INSERT INTO CSR.QS_QUESTION_TYPE(QUESTION_TYPE, LABEL, ANSWER_TYPE) VALUES ('slider', 'Slider', 'val');
+INSERT INTO CSR.QS_QUESTION_TYPE(QUESTION_TYPE, LABEL, ANSWER_TYPE) VALUES ('custom', 'Custom', null);
+
+CREATE SEQUENCE CSR.CUSTOM_QUESTION_TYPE_ID_SEQ
+    START WITH 1
+    INCREMENT BY 1
+    NOMINVALUE
+    NOMAXVALUE
+    CACHE 20
+    NOORDER
+;
+
+CREATE TABLE CSR.QS_CUSTOM_QUESTION_TYPE(
+    APP_SID                    NUMBER(10, 0)    DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    CUSTOM_QUESTION_TYPE_ID    NUMBER(10, 0)    NOT NULL,
+    DESCRIPTION                VARCHAR2(255)    NOT NULL,
+    JS_INCLUDE                 VARCHAR2(255)    NOT NULL,
+    JS_CLASS                   VARCHAR2(255)    NOT NULL,
+    CS_CLASS                   VARCHAR2(255)    NOT NULL,
+    CONSTRAINT PK_QS_CUST_QUESTION_TYPE PRIMARY KEY (APP_SID, CUSTOM_QUESTION_TYPE_ID)
+)
+;
+
+ALTER TABLE CSR.QUICK_SURVEY_QUESTION ADD (
+	CUSTOM_QUESTION_TYPE_ID    NUMBER(10, 0),
+	CONSTRAINT CHK_CUSTOM_QUESTION_ID CHECK ((QUESTION_TYPE!='custom' AND CUSTOM_QUESTION_TYPE_ID IS NULL) OR (QUESTION_TYPE='custom' AND CUSTOM_QUESTION_TYPE_ID IS NOT NULL))
+)
+;
+
+ALTER TABLE CSR.QUICK_SURVEY_ANSWER ADD (
+	HTML_DISPLAY             CLOB
+)
+;
+
+ALTER TABLE CSR.QUICK_SURVEY_EXPR_ACTION DROP CONSTRAINT CHK_QS_EXPR_ACTION_TYPE_FK;
+ALTER TABLE CSR.QUICK_SURVEY_EXPR_ACTION DROP CONSTRAINT CHK_QS_EXPR_ACTION_TYPE;
+
+ALTER TABLE CSR.QUICK_SURVEY_EXPR_ACTION ADD (
+	SHOW_QUESTION_ID               NUMBER(10, 0),
+	CONSTRAINT CHK_QS_EXPR_ACTION_TYPE_FK CHECK ((ACTION_TYPE = 'nc' AND QS_EXPR_NON_COMPL_ACTION_ID IS NOT NULL
+  AND QS_EXPR_MSG_ACTION_ID IS NULL AND QS_EXPR_STATUS_ACTION_ID IS NULL AND SHOW_QUESTION_ID IS NULL)
+OR
+(ACTION_TYPE = 'msg' AND QS_EXPR_NON_COMPL_ACTION_ID IS NULL
+  AND QS_EXPR_MSG_ACTION_ID IS NOT NULL AND QS_EXPR_STATUS_ACTION_ID IS NULL AND SHOW_QUESTION_ID IS NULL)
+OR
+(ACTION_TYPE = 'status' AND QS_EXPR_NON_COMPL_ACTION_ID IS NULL
+  AND QS_EXPR_MSG_ACTION_ID IS NULL AND QS_EXPR_STATUS_ACTION_ID IS NOT NULL AND SHOW_QUESTION_ID IS NULL)
+OR
+(ACTION_TYPE = 'show_q' AND QS_EXPR_NON_COMPL_ACTION_ID IS NULL
+  AND QS_EXPR_MSG_ACTION_ID IS NULL AND QS_EXPR_STATUS_ACTION_ID IS NULL AND SHOW_QUESTION_ID IS NOT NULL))
+);
+
+ALTER TABLE CSR.QUICK_SURVEY_EXPR_ACTION ADD CONSTRAINT FK_EXPR_SHOW_QUESTION_ID 
+    FOREIGN KEY (APP_SID, SHOW_QUESTION_ID)
+    REFERENCES CSR.QUICK_SURVEY_QUESTION(APP_SID, QUESTION_ID)
+;
+
+ALTER TABLE CSR.QS_CUSTOM_QUESTION_TYPE ADD CONSTRAINT FK_QS_CUST_QUEST_TYPE_APP 
+    FOREIGN KEY (APP_SID)
+    REFERENCES CSR.CUSTOMER(APP_SID)
+;
+
+ALTER TABLE CSR.QUICK_SURVEY_QUESTION ADD CONSTRAINT FK_QS_CUST_QUEST_TYPE 
+    FOREIGN KEY (APP_SID, CUSTOM_QUESTION_TYPE_ID)
+    REFERENCES CSR.QS_CUSTOM_QUESTION_TYPE(APP_SID, CUSTOM_QUESTION_TYPE_ID)
+;
+
+CREATE INDEX CSR.IX_QS_QUEST_CUSTOM_TYPE_ID ON CSR.QUICK_SURVEY_QUESTION(APP_SID, CUSTOM_QUESTION_TYPE_ID)
+;
+
+CREATE UNIQUE INDEX CSR.UK_CUST_QUEST_TYPE_JS_CLASS ON CSR.QS_CUSTOM_QUESTION_TYPE(APP_SID, JS_CLASS)
+;
+
+DROP TYPE CSR.T_QS_QUESTION_TABLE;
+
+CREATE OR REPLACE TYPE CSR.T_QS_QUESTION_ROW AS
+	OBJECT (
+		QUESTION_ID				NUMBER(10),
+		PARENT_ID				NUMBER(10),
+		POS						NUMBER(10), 
+		LABEL					VARCHAR2(4000), 
+		QUESTION_TYPE			VARCHAR2(40), 
+		SCORE					NUMBER(10),
+		MAX_SCORE				NUMBER(10),
+		UPLOAD_SCORE			NUMBER(10),
+		LOOKUP_KEY				VARCHAR2(255),
+		INVERT_SCORE			VARCHAR2(255),
+		CUSTOM_QUESTION_TYPE_ID	NUMBER(10)
+	);
+/
+CREATE OR REPLACE TYPE CSR.T_QS_QUESTION_TABLE AS
+  TABLE OF CSR.T_QS_QUESTION_ROW;
+/
+
+
+
+declare
+	policy_already_exists exception;
+	pragma exception_init(policy_already_exists, -28101);
+
+	type t_tabs is table of varchar2(30);
+	v_list t_tabs;
+	v_null_list t_tabs;
+begin	
+	v_list := t_tabs(
+		'QS_CUSTOM_QUESTION_TYPE'
+	);
+	for i in 1 .. v_list.count loop
+		declare
+			v_name varchar2(30);
+			v_i pls_integer default 1;
+		begin
+			loop
+				begin
+					if v_i = 1 then
+						v_name := SUBSTR(v_list(i), 1, 23)||'_POLICY';
+					else
+						v_name := SUBSTR(v_list(i), 1, 21)||'_POLICY_'||v_i;
+					end if;
+					dbms_output.put_line('doing '||v_name);
+				    dbms_rls.add_policy(
+				        object_schema   => 'CSR',
+				        object_name     => v_list(i),
+				        policy_name     => v_name,
+				        function_schema => 'CSR',
+				        policy_function => 'appSidCheck',
+				        statement_types => 'select, insert, update, delete',
+				        update_check	=> true,
+				        policy_type     => dbms_rls.context_sensitive );
+				  	exit;
+				exception
+					when policy_already_exists then
+						v_i := v_i + 1;
+				end;
+			end loop;
+		end;
+	end loop;
+end;
+/
+
+@..\quick_survey_pkg
+
+@..\quick_survey_body
+@..\supplier_body
+
+@update_tail

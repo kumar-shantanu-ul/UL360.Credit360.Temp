@@ -1,0 +1,362 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=2997
+define minor_version=13
+@update_header
+
+-- *** DDL ***
+-- Create tables
+DECLARE
+	v_count NUMBER;
+BEGIN
+	-- drop table, can't find a reference to this anywhere
+	SELECT COUNT(*)
+	  INTO v_count
+	  FROM all_tables
+	 WHERE owner = 'CHAIN'
+	   AND table_name = 'APPROVED_COMPANY_USER';
+	   
+	IF v_count > 0 THEN
+		EXECUTE IMMEDIATE 'DROP TABLE CHAIN.APPROVED_COMPANY_USER';
+	END IF;
+	
+	SELECT COUNT(*)
+	  INTO v_count
+	  FROM all_indexes
+	 WHERE owner = 'UPD'
+	   AND index_name = 'IDX_SV_CHANGE_SVID';
+	   
+	IF v_count > 0 THEN
+		EXECUTE IMMEDIATE 'DROP INDEX UP'||'D.IDX_SV_CHANGE_SVID';
+	END IF;
+END;
+/
+
+
+DECLARE
+	index_already_exists EXCEPTION;
+	PRAGMA exception_init(index_already_exists, -955);
+	table_doesnt_exists EXCEPTION;
+	PRAGMA exception_init(table_doesnt_exists, -942);
+	already_indexed EXCEPTION;
+	PRAGMA exception_init(already_indexed, -1408);
+
+	TYPE t_indexes IS TABLE OF VARCHAR2(2000);
+	v_indexes t_indexes;
+BEGIN	
+	v_indexes := t_indexes(
+		'create index aspen2.ix_filecache_upl_act_id_upload on aspen2.filecache_upload_progress (act_id, upload_key, app_sid)',
+		'create index aspen2.pk_poll_option on aspen2.poll_option (poll_sid, option_pos)',
+		'create index aspen2.pk_translated on aspen2.translated (original_hash, application_sid, lang)',
+		'create index aspen2.pk_translation on aspen2.translation (original_hash, application_sid)',
+		'create index chain.ix_bsci_associat_audit_ref on chain.bsci_associate (app_sid, audit_ref)',
+		'create index chain.ix_bsci_audit_audit_type_id on chain.bsci_audit (app_sid, audit_type_id)',
+		'create index chain.ix_bsci_audit_internal_audi on chain.bsci_audit (app_sid, internal_audit_sid)',
+		'create index chain.ix_bsci_finding_audit_ref on chain.bsci_finding (app_sid, audit_ref)',
+		'create index chain.ix_bsci_finding_audit_type_id on chain.bsci_finding (app_sid, audit_type_id)',
+		'create index chain.ix_bsci_import_batch_job_id on chain.bsci_import (app_sid, batch_job_id)',
+		'create index chain.ix_bsci_options_aud_type_2009 on chain.bsci_options (app_sid, audit_type_2009_id)',
+		'create index chain.ix_bsci_options_aud_type_2014 on chain.bsci_options (app_sid, audit_type_2014_id)',
+		'create index chain.ix_bsci_supplier_company_sid on chain.bsci_supplier (app_sid, company_sid)',
+		'create index chain.ix_bsci_supplier_rsp_id on chain.bsci_supplier (rsp_id)',
+		'create index chain.ix_company_type__follower_role on chain.company_type_relationship (app_sid, follower_role_sid)',
+		'create index chain.ix_customer_grid_grid_extensio on chain.customer_grid_extension (grid_extension_id)',
+		'create index chain.ix_dedupe_mappin_dedupe_field_ on chain.dedupe_mapping (dedupe_field_id)',
+		'create index chain.ix_dedupe_mappin_reference_id on chain.dedupe_mapping (app_sid, reference_id)',
+		'create index chain.ix_dedupe_mappin_tab_sid_col_s on chain.dedupe_mapping (app_sid, tab_sid, col_sid)',
+		'create index chain.ix_dedupe_mappin_tag_group_id on chain.dedupe_mapping (app_sid, tag_group_id)',
+		'create index chain.ix_dedupe_match_dedupe_rule_i on chain.dedupe_match (app_sid, dedupe_rule_id)',
+		'create index chain.ix_dedupe_match_matched_to_co on chain.dedupe_match (app_sid, matched_to_company_sid)',
+		'create index chain.ix_dedupe_merge__dedupe_field_ on chain.dedupe_merge_log (dedupe_field_id)',
+		'create index chain.ix_dedupe_proces_dedupe_match_ on chain.dedupe_processed_record (dedupe_match_type_id)',
+		'create index chain.ix_dedupe_proces_matched_by_us on chain.dedupe_processed_record (app_sid, matched_by_user_sid)',
+		'create index chain.ix_dedupe_rule_m_dedupe_mappin on chain.dedupe_rule_mapping (app_sid, dedupe_mapping_id)',
+		'create index chain.ix_filter_export_card_group_id on chain.filter_export_batch (card_group_id)',
+		'create index chain.ix_filter_export_compound_filt on chain.filter_export_batch (app_sid, compound_filter_id)',
+		'create index chain.ix_grid_extensio_extension_car on chain.grid_extension (extension_card_group_id)',
+		'create index chain.ix_task_company_sid on chain.task (app_sid, supplier_company_sid)',
+		'create index chain.pk181 on chain.product_metric_type (product_metric_type_id, app_sid)',
+		'create index chain.pk285 on chain.amount_unit (amount_unit_id, app_sid)',
+		'create index chain.pk63 on chain.task (task_id, app_sid)',
+		'create index chain.pk88 on chain.task_type (task_type_id, app_sid)',
+		'create index chain.pk88_1 on chain.task_scheme (task_scheme_id, app_sid)',
+		'create index cms.ix_doc_template__doc_template_ on cms.doc_template_version (app_sid, doc_template_file_id)',
+		'create index cms.ix_doc_template_lang on cms.doc_template (app_sid, lang)',
+		'create index cms.ix_form_form_sid_curr on cms.form (app_sid, form_sid, current_version)',
+		'create index csr.form_expr_id_unq on csr.form_expr (form_expr_id)',
+		'create index csr.idx_deleg_ind_cond on csr.delegation_ind_cond_action (delegation_ind_cond_id)',
+		'create index csr.idx_http_req_cache on csr.http_request_cache (request_hash, url)',
+		'create index csr.idx_meter_source_data_region on csr.meter_source_data (app_sid, region_sid, priority)',
+		'create index csr.idx_sheet_end on csr.sheet (app_sid, end_dtm)',
+		'create index csr.idx_sheet_history_sheet on csr.sheet_history (app_sid, sheet_id)',
+		'create index csr.idx_sheet_value on csr.sheet_value (app_sid, ind_sid, region_sid, status)',
+		'create index csr.idx_sv_change_svid on csr.sheet_value_change (app_sid, sheet_value_id)',
+		'create index csr.ix_aggregate_ind_aggregate_ind on csr.aggregate_ind_val_detail (app_sid, aggregate_ind_group_id)',
+		'create index csr.ix_aggregate_ind_ind_sid on csr.aggregate_ind_val_detail (app_sid, ind_sid)',
+		'create index csr.ix_aggregate_ind_region_sid on csr.aggregate_ind_val_detail (app_sid, region_sid)',
+		'create index csr.ix_alert_batch_run_user on csr.alert_batch_run (app_sid, csr_user_sid)',
+		'create index csr.ix_alert_type_parent on csr.std_alert_type (parent_alert_type_id)',
+		'create index csr.ix_appr_dash_appr_dash_ind on csr.approval_dashboard_val (app_sid, approval_dashboard_sid, ind_sid)',
+		'create index csr.ix_approval_dash_dashboard_ins on csr.approval_dashboard_val (app_sid, dashboard_instance_id, approval_dashboard_sid)',
+		'create index csr.ix_approval_dash_ind_sid on csr.approval_dashboard_ind (app_sid, ind_sid)',
+		'create index csr.ix_approval_dash_note_added_by on csr.approval_dashboard_val (app_sid, note_added_by_sid)',
+		'create index csr.ix_approval_dash_period_set_id on csr.approval_dashboard (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_approval_dash_publish_doc_f on csr.approval_dashboard (app_sid, publish_doc_folder_sid)',
+		'create index csr.ix_approval_note_added_by_sid on csr.approval_note_portlet_note (app_sid, added_by_sid)',
+		'create index csr.ix_approval_note_approval_dash on csr.approval_note_portlet_note (app_sid, approval_dashboard_sid)',
+		'create index csr.ix_approval_note_dashboard_ins on csr.approval_note_portlet_note (app_sid, dashboard_instance_id, approval_dashboard_sid)',
+		'create index csr.ix_approval_note_region_sid on csr.approval_note_portlet_note (app_sid, region_sid)',
+		'create index csr.ix_approval_note_tab_portlet_i on csr.approval_note_portlet_note (app_sid, tab_portlet_id)',
+		'create index csr.ix_approval_step_model_sid on csr.approval_step_model (app_sid, model_sid)',
+		'create index csr.ix_audit_iss_all_csr_user_sid on csr.audit_iss_all_closed_alert (app_sid, csr_user_sid)',
+		'create index csr.ix_audit_type_cl_audit_closure on csr.audit_type_closure_type (app_sid, audit_closure_type_id)',
+		'create index csr.ix_auto_imp_core_automated_imp on csr.auto_imp_core_data_settings (automated_import_file_type_id)',
+		'create index csr.ix_auto_imp_core_date_format_t on csr.auto_imp_core_data_settings (date_format_type_id)',
+		'create index csr.ix_auto_imp_core_first_col_dat on csr.auto_imp_core_data_settings (first_col_date_format_id)',
+		'create index csr.ix_auto_imp_core_ind_mapping_t on csr.auto_imp_core_data_settings (ind_mapping_type_id)',
+		'create index csr.ix_auto_imp_core_region_mappin on csr.auto_imp_core_data_settings (region_mapping_type_id)',
+		'create index csr.ix_auto_imp_core_second_col_da on csr.auto_imp_core_data_settings (second_col_date_format_id)',
+		'create index csr.ix_auto_imp_core_unit_mapping_ on csr.auto_imp_core_data_settings (unit_mapping_type_id)',
+		'create index csr.ix_auto_imp_indi_ind_sid on csr.auto_imp_indicator_map (app_sid, ind_sid)',
+		'create index csr.ix_auto_imp_regi_region_sid on csr.auto_imp_region_map (app_sid, region_sid)',
+		'create index csr.ix_auto_imp_unit_measure_conve on csr.auto_imp_unit_map (app_sid, measure_conversion_id)',
+		'create index csr.ix_auto_imp_zip__matched_impor on csr.auto_imp_zip_filter (app_sid, matched_import_class_sid)',
+		'create index csr.ix_automated_imp_parent_instan on csr.automated_import_instance (app_sid, parent_instance_id)',
+		'create index csr.ix_batch_job_app_batch_job_id on csr.batch_job_approval_dash_vals (app_sid, batch_job_id)',
+		'create index csr.ix_batch_job_bat_batch_export_ on csr.batch_job_batched_export (batch_export_type_id)',
+		'create index csr.ix_batch_job_bat_batch_import_ on csr.batch_job_batched_import (batch_import_type_id)',
+		'create index csr.ix_batch_job_lik_batch_job_id on csr.batch_job_like_for_like (app_sid, batch_job_id)',
+		'create index csr.ix_batch_job_log_event_type_id on csr.batch_job_log (event_type_id)',
+		'create index csr.ix_batch_job_met_period_set_id on csr.batch_job_meter_extract (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_batch_job_requested_by_ on csr.batch_job (app_sid, requested_by_company_sid)',
+		'create index csr.ix_benchmark_das_period_set_id on csr.benchmark_dashboard (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_cms_imp_insta_batch_job_id on csr.automated_import_instance (app_sid, batch_job_id)',
+		'create index csr.ix_cms_imp_insta_cms_imp_class on csr.automated_import_instance (app_sid, automated_import_class_sid)',
+		'create index csr.ix_cms_imp_insta_cms_imp_insta on csr.automated_import_instance_step (app_sid, automated_import_instance_id, automated_import_class_sid)',
+		'create index csr.ix_cms_imp_insta_result on csr.automated_import_instance_step (result)',
+		'create index csr.ix_cms_tab_alert_tab_sid on csr.cms_tab_alert_type (app_sid, tab_sid)',
+		'create index csr.ix_compliance_op_quick_survey_ on csr.compliance_options (app_sid, quick_survey_type_id)',
+		'create index csr.ix_compliance_op_regulation_fl on csr.compliance_options (app_sid, regulation_flow_sid)',
+		'create index csr.ix_compliance_op_requirement_f on csr.compliance_options (app_sid, requirement_flow_sid)',
+		'create index csr.ix_course_course_type_i on csr.course (app_sid, course_type_id)',
+		'create index csr.ix_course_default_place on csr.course (app_sid, default_place_id)',
+		'create index csr.ix_course_default_train on csr.course (app_sid, default_trainer_id)',
+		'create index csr.ix_course_delivery_meth on csr.course (delivery_method_id)',
+		'create index csr.ix_course_provision_id on csr.course (provision_id)',
+		'create index csr.ix_course_quiz_sid on csr.course (app_sid, quiz_sid)',
+		'create index csr.ix_course_region_sid on csr.course (app_sid, region_sid)',
+		'create index csr.ix_course_schedu_calendar_even on csr.course_schedule (app_sid, calendar_event_id)',
+		'create index csr.ix_course_schedu_course_id on csr.course_schedule (app_sid, course_id)',
+		'create index csr.ix_course_schedu_place_id on csr.course_schedule (app_sid, place_id)',
+		'create index csr.ix_course_schedu_trainer_id on csr.course_schedule (app_sid, trainer_id)',
+		'create index csr.ix_course_status_id on csr.course (status_id)',
+		'create index csr.ix_course_survey_sid on csr.course (app_sid, survey_sid)',
+		'create index csr.ix_course_type_r_region_sid on csr.course_type_region (app_sid, region_sid)',
+		'create index csr.ix_course_type_user_relation on csr.course_type (app_sid, user_relationship_type_id)',
+		'create index csr.ix_custom_factor_created_by_si on csr.custom_factor_set (app_sid, created_by_sid)',
+		'create index csr.ix_custom_factor_custom_factor on csr.custom_factor (app_sid, custom_factor_set_id)',
+		'create index csr.ix_custom_factor_egrid_ref on csr.custom_factor (egrid_ref)',
+		'create index csr.ix_custom_factor_factor_set_gr on csr.custom_factor_set (factor_set_group_id)',
+		'create index csr.ix_custom_factor_factor_type_i on csr.custom_factor (factor_type_id)',
+		'create index csr.ix_custom_factor_gas_type_id on csr.custom_factor (gas_type_id)',
+		'create index csr.ix_custom_factor_std_measure_c on csr.custom_factor (std_measure_conversion_id)',
+		'create index csr.ix_customer_alert_type_type on csr.customer_alert_type (std_alert_type_id)',
+		'create index csr.ix_dataview_aggregation_p on csr.dataview (app_sid, aggregation_period_id)',
+		'create index csr.ix_dataview_period_set_id on csr.dataview (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_deleg_grid_aggr_ind_agg_to on csr.delegation_grid_aggregate_ind (app_sid, aggregate_to_ind_sid)',
+		'create index csr.ix_deleg_plan_period_set_id on csr.deleg_plan (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_deleg_report_period_set_id on csr.deleg_report (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_delegation_gr_form_sid on csr.delegation_grid (app_sid, form_sid)',
+		'create index csr.ix_delegation_period_set_id on csr.delegation (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_delegation_tag_visibilit on csr.delegation (app_sid, tag_visibility_matrix_group_id)',
+		'create index csr.ix_emission_fact_custom_factor on csr.emission_factor_profile_factor (app_sid, custom_factor_set_id)',
+		'create index csr.ix_emission_fact_egrid_ref on csr.emission_factor_profile_factor (egrid_ref)',
+		'create index csr.ix_emission_fact_factor_type_i on csr.emission_factor_profile_factor (factor_type_id)',
+		'create index csr.ix_emission_fact_std_factor_se on csr.emission_factor_profile_factor (std_factor_set_id)',
+		'create index csr.ix_enhesa_countr_lang on csr.enhesa_country_name (lang)',
+		'create index csr.ix_enhesa_ctrgn_lang on csr.enhesa_country_region_name (lang)',
+		'create index csr.ix_enhesa_headin_lang on csr.enhesa_heading_text (lang)',
+		'create index csr.ix_enhesa_intro__lang on csr.enhesa_intro_text (lang)',
+		'create index csr.ix_enhesa_intro_country_code on csr.enhesa_intro (country_code)',
+		'create index csr.ix_enhesa_intro_country_code_ on csr.enhesa_intro (country_code, region_code)',
+		'create index csr.ix_enhesa_keywor_lang on csr.enhesa_keyword_text (lang)',
+		'create index csr.ix_enhesa_reg_country_code on csr.enhesa_reg (country_code)',
+		'create index csr.ix_enhesa_reg_re_country_code_ on csr.enhesa_reg_region (country_code, region_code)',
+		'create index csr.ix_enhesa_rqmt_country_code on csr.enhesa_rqmt (country_code)',
+		'create index csr.ix_enhesa_rqmt_country_code_ on csr.enhesa_rqmt (country_code, region_code)',
+		'create index csr.ix_enhesa_rqmt_t_lang on csr.enhesa_rqmt_text (lang)',
+		'create index csr.ix_enhesa_scrngq_lang on csr.enhesa_scrngqn_text (lang)',
+		'create index csr.ix_enhesa_status_lang on csr.enhesa_status_name (lang)',
+		'create index csr.ix_enhesa_sup_do_country_code on csr.enhesa_sup_doc (country_code)',
+		'create index csr.ix_enhesa_sup_do_country_code_ on csr.enhesa_sup_doc (country_code, region_code)',
+		'create index csr.ix_enhesa_sup_do_lang on csr.enhesa_sup_doc_item_text (lang)',
+		'create index csr.ix_enhesa_topic__country_code_ on csr.enhesa_topic_region (country_code, region_code)',
+		'create index csr.ix_enhesa_topic_country_code on csr.enhesa_topic (country_code)',
+		'create index csr.ix_enhesa_topic_status_id on csr.enhesa_topic (status_id)',
+		'create index csr.ix_factor_custom_factor on csr.factor (app_sid, custom_factor_id)',
+		'create index csr.ix_flow_st_ro_cap_role_sid on csr.flow_state_role_capability (app_sid, role_sid)',
+		'create index csr.ix_flow_state_au_flow_state_au on csr.flow_state_audit_ind (flow_state_audit_ind_type_id)',
+		'create index csr.ix_flow_state_au_internal_audi on csr.flow_state_audit_ind (app_sid, internal_audit_type_id)',
+		'create index csr.ix_flow_state_flow_state_na on csr.flow_state (flow_state_nature_id)',
+		'create index csr.ix_flow_state_na_flow_alert_cl on csr.flow_state_nature (flow_alert_class)',
+		'create index csr.ix_form_period_set_id on csr.form (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_function_cour_course_id on csr.function_course (app_sid, course_id)',
+		'create index csr.ix_function_cour_training_prio on csr.function_course (training_priority_id)',
+		'create index csr.ix_ind_gas_type on csr.ind (app_sid, gas_type_id)',
+		'create index csr.ix_ind_period_set_id on csr.ind (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_initiative_us_initiative_si on csr.initiative_user (app_sid, initiative_sid, project_sid)',
+		'create index csr.ix_internal_audi_form_sid on csr.internal_audit_type (app_sid, form_sid)',
+		'create index csr.ix_internal_audi_nc_score_thrs on csr.internal_audit (app_sid, nc_score_thrsh_id)',
+		'create index csr.ix_internal_audi_ovw_nc_score_ on csr.internal_audit (app_sid, ovw_nc_score_thrsh_id)',
+		'create index csr.ix_issue_meter_m_region on csr.issue_meter_missing_data (app_sid, region_sid)',
+		'create index csr.ix_like_for_like_created_by_us on csr.like_for_like_slot (app_sid, created_by_user_sid)',
+		'create index csr.ix_like_for_like_csr_user_sid on csr.like_for_like_email_sub (app_sid, csr_user_sid)',
+		'create index csr.ix_like_for_like_csr_user_sid2 on csr.like_for_like_scenario_alert (app_sid, csr_user_sid)',
+		'create index csr.ix_like_for_like_ind_sid on csr.like_for_like_slot (app_sid, ind_sid)',
+		'create index csr.ix_like_for_like_last_refresh_ on csr.like_for_like_slot (app_sid, last_refresh_user_sid)',
+		'create index csr.ix_like_for_like_period_set_id on csr.like_for_like_slot (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_like_for_like_region_sid on csr.like_for_like_excluded_regions (app_sid, region_sid)',
+		'create index csr.ix_like_for_like_region_sid2 on csr.like_for_like_slot (app_sid, region_sid)',
+		'create index csr.ix_like_for_like_scenario_run_ on csr.like_for_like_slot (app_sid, scenario_run_sid)',
+		'create index csr.ix_location_name on csr.location (location_type_id, name)',
+		'create index csr.ix_meter_raw_dat_automated_imp on csr.meter_raw_data_source (app_sid, automated_import_class_sid)',
+		'create index csr.ix_metld_inagpr on csr.meter_live_data (app_sid, meter_input_id, aggregator, priority)',
+		'create index csr.ix_metric_dashbo_period_set_id on csr.metric_dashboard (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_non_comp_t_rpt_aud_typ on csr.non_comp_type_rpt_audit_type (app_sid, internal_audit_type_id)',
+		'create index csr.ix_period_intrvl_end_period on csr.period_interval_member (app_sid, period_set_id, end_period_id)',
+		'create index csr.ix_period_intrvl_st_period on csr.period_interval_member (app_sid, period_set_id, start_period_id)',
+		'create index csr.ix_plugin_form_sid on csr.plugin (app_sid, form_sid)',
+		'create index csr.ix_qs_ansfil_svy_respon_fil on csr.qs_answer_file (app_sid, survey_response_id, sha1, filename, mime_type)',
+		'create index csr.ix_qs_expr_non_c_non_complianc on csr.qs_expr_non_compl_action (app_sid, non_compliance_type_id)',
+		'create index csr.ix_region_postit_postit_id on csr.region_postit (app_sid, postit_id)',
+		'create index csr.ix_ruleset_period_set_id on csr.ruleset (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_scenario_period_set_id on csr.scenario (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_section_fact__attachment_id on csr.section_fact_attach (app_sid, attachment_id)',
+		'create index csr.ix_section_fact_map_to_ind_si on csr.section_fact (app_sid, map_to_ind_sid)',
+		'create index csr.ix_section_fact_map_to_region on csr.section_fact (app_sid, map_to_region_sid)',
+		'create index csr.ix_section_fact_std_measure_c on csr.section_fact (std_measure_conversion_id)',
+		'create index csr.ix_snapshot_period_set_id on csr.snapshot (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_ss_imi_monthl_period_id on csr.ss_imi_monthly_hours (period_id)',
+		'create index csr.ix_std_factor_se_factor_set_gr on csr.std_factor_set (factor_set_group_id)',
+		'create index csr.ix_std_factor_se_std_factor_se on csr.std_factor_set_active (std_factor_set_id)',
+		'create index csr.ix_supplier_scor_changed_by_us on csr.supplier_score_log (app_sid, changed_by_user_sid)',
+		'create index csr.ix_supplier_scor_score_type_id on csr.supplier_score_log (app_sid, score_type_id)',
+		'create index csr.ix_target_dashbo_period_set_id on csr.target_dashboard (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_tpl_report_no_period_set_id on csr.tpl_report_non_compl (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_tpl_report_period_set_id on csr.tpl_report (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_tpl_report_sc_scenario_run_ on csr.tpl_report_schedule (app_sid, scenario_run_sid)',
+		'create index csr.ix_tpl_report_ta_ind_tag on csr.tpl_report_tag_dataview (app_sid, ind_tag)',
+		'create index csr.ix_tpl_report_ta_measure_conve on csr.tpl_report_tag_ind (app_sid, measure_conversion_id)',
+		'create index csr.ix_tpl_report_ta_period_set_id on csr.tpl_report_tag_dataview (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_tpl_report_ta_saved_filter_ on csr.tpl_report_tag_dataview (app_sid, saved_filter_sid)',
+		'create index csr.ix_tpl_report_ta_tab_portlet_i on csr.tpl_report_tag_approval_note (app_sid, tab_portlet_id)',
+		'create index csr.ix_tpl_reptgev_period_set_id on csr.tpl_report_tag_eval (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_tpl_reptgind_period_set_id on csr.tpl_report_tag_ind (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_tpl_reptglog_period_set_id on csr.tpl_report_tag_logging_form (app_sid, period_set_id, period_interval_id)',
+		'create index csr.ix_tpl_rettag_ta_approval_dash on csr.tpl_report_tag_approval_note (app_sid, approval_dashboard_sid)',
+		'create index csr.ix_tpl_rptmat_ta_approval_dash on csr.tpl_report_tag_approval_matrix (app_sid, approval_dashboard_sid)',
+		'create index csr.ix_tpl_rpttag_ta_approval_dash on csr.tpl_report_tag_dataview (app_sid, approval_dashboard_sid)',
+		'create index csr.ix_trainer_user_sid on csr.trainer (app_sid, user_sid)',
+		'create index csr.ix_training_opti_calendar_sid on csr.training_options (app_sid, calendar_sid)',
+		'create index csr.ix_training_opti_flow_sid on csr.training_options (app_sid, flow_sid)',
+		'create index csr.ix_urjanet_servi_raw_data_sour on csr.urjanet_service_type (app_sid, raw_data_source_id)',
+		'create index csr.ix_user_course_course_id on csr.user_course (app_sid, course_id)',
+		'create index csr.ix_user_course_l_user_sid_cour on csr.user_course_log (app_sid, user_sid, course_id)',
+		'create index csr.ix_user_course_user_sid_cour on csr.user_course (app_sid, user_sid, course_schedule_id, course_id)',
+		'create index csr.ix_user_function_function_id on csr.user_function (app_sid, function_id)',
+		'create index csr.ix_user_mess_alrt_raised_user on csr.user_message_alert (app_sid, raised_by_user_sid)',
+		'create index csr.ix_user_relation_parent_user_s on csr.user_relationship (app_sid, parent_user_sid)',
+		'create index csr.ix_user_relation_user_relation on csr.user_relationship (app_sid, user_relationship_type_id)',
+		'create index csr.ix_user_train_course_schedule on csr.user_training (app_sid, course_schedule_id, course_id)',
+		'create index csr.ix_user_training_course_schedu on csr.user_training (app_sid, course_schedule_id)',
+		'create index csr.ix_user_training_flow_item_id on csr.user_training (app_sid, flow_item_id)',
+		'create index csr.ix_util_script_r_client_util_s on csr.util_script_run_log (app_sid, client_util_script_id)',
+		'create index csr.ref2253 on csr.imp_conflict_val (imp_val_id)',
+		'create index csr.uk_quick_survey_response on csr.quick_survey_response (app_sid, survey_response_id, survey_sid)',
+		'create index donations.pk102 on donations.scheme_donation_status (app_sid, scheme_sid, donation_status_sid)',
+		'create index mail.ix_log_entry_log_category_ on mail.log_entry (log_category_id)',
+		'create index mail.ix_log_entry_log_program_i on mail.log_entry (log_program_id)',
+		
+		'create index csr.ix_automated_imp_mailbox_sid_m on csr.automated_import_instance (app_sid, mailbox_sid, mail_message_uid)',
+		'create index csr.ix_auto_imp_mail_mailbox_sid on csr.auto_imp_mail (mailbox_sid)',
+		'create index csr.ix_auto_imp_mail_matched_imp_c on csr.auto_imp_mailbox (app_sid, matched_imp_class_sid_for_body)',
+		'create index csr.ix_auto_imp_mailbox_sid on csr.auto_imp_mailbox (mailbox_sid)',
+		'create index csr.ix_auto_imp_mail_matched_impor on csr.auto_imp_mail_attach_filter (app_sid, matched_import_class_sid)',
+		'create index csr.ix_auto_imp_mail_at_f_mail_sid on csr.auto_imp_mail_attach_filter (mailbox_sid)',
+		'create index csr.ix_auto_imp_mail_file_mail_sid on csr.auto_imp_mail_file (mailbox_sid)',
+		'create index csr.ix_auto_imp_mail_msg_mail_sid on csr.auto_imp_mail_msg (mailbox_sid)',
+		'create index csr.ix_auto_imp_mail_sd_f_mail_sid on csr.auto_imp_mail_sender_filter (mailbox_sid)',
+		'create index csr.ix_auto_imp_mail_sj_f_mail_sid on csr.auto_imp_mail_subject_filter (mailbox_sid)',
+		'create index aspen2.ix_filecache_upl_act_id_up_app on aspen2.filecache_upload_progress (act_id, upload_key, app_sid)',
+		'create index aspen2.ix_poll_option_poll_sid on aspen2.poll_option (poll_sid)',
+		'create index aspen2.ix_poll_vote_poll_option_i on aspen2.poll_vote (poll_option_id)',
+		'create index aspen2.ix_poll_vote_poll_sid on aspen2.poll_vote (poll_sid)',
+		'create index chain.ix_component_sou_comp_typ_2 on chain.component_source (app_sid, component_type_id)',
+		'create index chain.ix_component_typ_child_comp_2 on chain.component_type_containment (app_sid, child_component_type_id)',
+		'create index chain.ix_dedupe_mappin_destination_t on chain.dedupe_mapping (app_sid, destination_tab_sid, destination_col_sid)',
+		'create index chain.ix_email_stub_bl_stub_comparat on chain.email_stub_blacklist (stub_comparator_id)',
+		'create index chain.ix_file_upload_company_sid on chain.file_upload (app_sid, company_sid)',
+		'create index chain.ix_purchase_amount_unit_i2 on chain.purchase (app_sid, amount_unit_id)',
+		'create index chain.ix_task_action_t_task_type_id on chain.task_action_trigger (app_sid, task_type_id)',
+		'create index chain.ix_task_type_parent_task_t_2 on chain.task_type (app_sid, parent_task_type_id)',
+		'create index chain.ix_task_type_task_scheme_i_2 on chain.task_type (app_sid, task_scheme_id)',
+		'create index cms.ix_tab_enum_translat on cms.tab (app_sid, enum_translation_tab_sid)',
+		'create index csr.ix_audit_log_audit_type_id on csr.audit_log (audit_type_id)',
+		'create index csr.ix_calc_job_fetc_calc_job_id on csr.calc_job_fetch_stat (app_sid, calc_job_id)',
+		'create index csr.ix_calc_job_stat_scenario_run_ on csr.calc_job_stat (app_sid, scenario_run_sid)',
+		'create index csr.ix_deleg_plan_da_deleg_pl_co_2 on csr.deleg_plan_date_schedule (deleg_plan_col_id, app_sid)',
+		'create index csr.ix_help_topic_fi_help_topic_id on csr.help_topic_file (help_topic_id, help_lang_id)',
+		'create index csr.ix_internal_audi_ia_type_repor on csr.internal_audit_type_report (app_sid, ia_type_report_group_id)',
+		'create index csr.ix_measure_conve_measure_sid on csr.measure_conversion_set (app_sid, measure_sid)',
+		'create index csr.ix_measure_conve_measure_conve on csr.measure_conversion_set_entry (app_sid, measure_conversion_id)',
+		'create index csr.ix_model_instanc_map_to_region on csr.model_instance_map (app_sid, map_to_region_sid)',
+		'create index csr.ix_model_validat_model_sid_she on csr.model_validation (app_sid, model_sid, sheet_id, cell_name)',
+		'create index csr.ix_property_divi_division_id_a on csr.property_division (division_id, app_sid)',
+		'create index csr.ix_quick_survey_root_ind_sid on csr.quick_survey (app_sid, root_ind_sid)',
+		'create index csr.ix_region_proc_f_meter_documen on csr.region_proc_file (app_sid, meter_document_id)',
+		'create index csr.ix_route_log_route_id on csr.route_log (app_sid, route_id)',
+		'create index csr.ix_route_log_route_step_id on csr.route_log (app_sid, route_step_id)',
+		'create index csr.ix_sheet_value_v_var_expl_id on csr.sheet_value_var_expl (app_sid, var_expl_id)',
+		'create index csr.ix_supplier_surv_survey_sid_su on csr.supplier_survey_response (app_sid, survey_sid, survey_response_id)',
+		'create index csr.ix_tpl_report_ta_tpl_ind_id on csr.tpl_report_tag (app_sid, tpl_report_tag_ind_id)',
+		'create index csr.ix_tpl_report_ta_tpl_eval_id on csr.tpl_report_tag (app_sid, tpl_report_tag_eval_id)',
+		'create index csr.ix_tpl_report_ta_dataview_sid_ on csr.tpl_report_tag_dv_region (app_sid, dataview_sid, region_sid)',
+		'create index csr.ix_tpl_report_ta_ev_tpl_ev_id on csr.tpl_report_tag_eval_cond (app_sid, tpl_report_tag_eval_id)',
+		'create index donations.ix_scheme_donati_scheme_sid on donations.scheme_donation_status (app_sid, scheme_sid)'
+	);
+	
+	FOR i IN 1 .. v_indexes.COUNT LOOP
+		BEGIN
+			EXECUTE IMMEDIATE v_indexes(i);
+		EXCEPTION
+			WHEN index_already_exists THEN
+				NULL;
+			WHEN table_doesnt_exists THEN
+				NULL;
+			WHEN already_indexed THEN
+				NULL;
+		END;	
+	END LOOP;
+END;
+/
+
+-- Alter tables
+
+-- *** Grants ***
+
+-- ** Cross schema constraints ***
+
+-- *** Views ***
+-- Please paste the content of the view and add a comment referencing the path of the create_views file which will contain your view changes.
+
+-- *** Data changes ***
+-- RLS
+
+-- Data
+
+-- ** New package grants **
+
+-- *** Conditional Packages ***
+
+-- *** Packages ***
+
+@update_tail

@@ -1,0 +1,47 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=401
+@update_header
+
+-- hmm -- this didn't seem to make it into earlier update scripts so just adding it
+-- now for D.T. when they get this update
+DECLARE
+	new_class_id 	security_pkg.T_SID_ID;
+	v_act 			security_pkg.T_ACT_ID;
+	v_attribute_id	security_pkg.T_ATTRIBUTE_ID;
+BEGIN
+	user_pkg.LogonAuthenticated(security_pkg.SID_BUILTIN_ADMINISTRATOR, NULL, v_ACT);	
+	BEGIN
+        class_pkg.CreateClass(v_act, NULL, 'CSRTemplatedReport', 'csr.templated_report_pkg', NULL, new_class_id);
+    EXCEPTION
+        WHEN security_pkg.DUPLICATE_OBJECT_NAME THEN
+            NULL;
+    END;
+END;
+/
+
+ALTER TABLE TPL_REPORT_TAG DROP CONSTRAINT RefTPL_REPORT_TAG_EVAL1257;
+
+ALTER TABLE TPL_REPORT_TAG ADD CONSTRAINT RefTPL_REPORT_TAG_EVAL1257
+ FOREIGN KEY (APP_SID, TPL_REPORT_TAG_EVAL_ID)
+REFERENCES TPL_REPORT_TAG_EVAL(APP_SID, TPL_REPORT_TAG_EVAL_ID)  DEFERRABLE INITIALLY DEFERRED
+;
+
+ALTER TABLE TPL_REPORT_TAG DROP CONSTRAINT RefTPL_REPORT_TAG_IND1413;
+
+ALTER TABLE TPL_REPORT_TAG ADD CONSTRAINT RefTPL_REPORT_TAG_IND1413
+ FOREIGN KEY (APP_SID, TPL_REPORT_TAG_IND_ID)
+REFERENCES TPL_REPORT_TAG_IND(APP_SID, TPL_REPORT_TAG_IND_ID)  DEFERRABLE INITIALLY DEFERRED
+;
+
+ALTER TABLE TPL_REPORT_TAG DROP CONSTRAINT RefTPL_REPORT_TAG_DATAVIEW1414;
+
+ALTER TABLE TPL_REPORT_TAG ADD CONSTRAINT RefTPL_REPORT_TAG_DATAVIEW1414
+ FOREIGN KEY (APP_SID, TPL_REPORT_TAG_DATAVIEW_ID)
+REFERENCES TPL_REPORT_TAG_DATAVIEW(APP_SID, TPL_REPORT_TAG_DATAVIEW_ID)  DEFERRABLE INITIALLY DEFERRED
+;
+
+@../templated_report_pkg
+@../templated_report_body
+
+
+@update_tail

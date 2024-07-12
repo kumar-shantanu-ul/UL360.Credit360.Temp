@@ -1,0 +1,56 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=1569
+@update_header
+
+CREATE TABLE CSR.EST_SPACE_TYPE_MAP (
+	APP_SID				NUMBER(10)		DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+	EST_SPACE_TYPE		VARCHAR(256)	NOT NULL,
+	SPACE_TYPE_ID		NUMBER(10)		NOT NULL,
+	CONSTRAINT PK_EST_SPACE_TYPE_MAP PRIMARY KEY (APP_SID, EST_SPACE_TYPE)
+);
+
+ALTER TABLE CSR.EST_SPACE_TYPE_MAP ADD CONSTRAINT FK_CUSTOMER_EST_SPACE_TYPE
+	FOREIGN KEY (APP_SID)
+	REFERENCES CSR.CUSTOMER(APP_SID)
+;
+
+ALTER TABLE CSR.EST_SPACE_TYPE_MAP ADD CONSTRAINT FK_SPACE_TYPE_EST_SPACE_TYPE
+	FOREIGN KEY (APP_SID, SPACE_TYPE_ID)
+	REFERENCES CSR.SPACE_TYPE(APP_SID, SPACE_TYPE_ID)
+;
+
+CREATE INDEX CSR.IX_CUSTOMER_EST_SPACE_TYPE ON CSR.EST_SPACE_TYPE_MAP (APP_SID);
+CREATE INDEX CSR.IX_SPACE_TYPE_EST_SPACE_TYPE ON CSR.EST_SPACE_TYPE_MAP (APP_SID, SPACE_TYPE_ID);
+
+ALTER TABLE CSR.EST_SPACE_ATTR_MAPPING ADD (
+	APPLIES_TO_BUILDING		NUMBER(1,0)		DEFAULT 0	NOT NULL,
+	CHECK(APPLIES_TO_BUILDING IN (0,1))
+);
+
+DECLARE
+	POLICY_ALREADY_EXISTS EXCEPTION;
+	PRAGMA EXCEPTION_INIT(POLICY_ALREADY_EXISTS, -28101);
+BEGIN
+	BEGIN
+		dbms_rls.add_policy(
+		    object_schema   => 'CSR',
+		    object_name     => 'EST_SPACE_TYPE_MAP',
+		    policy_name     => 'EST_SPACE_TYPE_MAP_POLICY',
+		    function_schema => 'CSR',
+		    policy_function => 'appSidCheck',
+		    statement_types => 'select, insert, update, delete',
+		    update_check	=> true,
+		    policy_type     => dbms_rls.context_sensitive
+		);
+	EXCEPTION
+		WHEN POLICY_ALREADY_EXISTS THEN
+			NULL;
+	END;
+END;
+/
+
+@../energy_star_pkg
+@../region_metric_body
+@../energy_star_body
+
+@update_tail

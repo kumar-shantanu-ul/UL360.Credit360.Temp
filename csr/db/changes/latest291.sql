@@ -1,0 +1,21 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=291
+@update_header
+
+ALTER TABLE SNAPSHOT ADD (INTERVAL2 VARCHAR2(1) DEFAULT 'y' NOT NULL);
+
+UPDATE SNAPSHOT SET INTERVAL2 = INTERVAL;
+
+ALTER TABLE SNAPSHOT DROP COLUMN INTERVAL;
+
+ALTER TABLE SNAPSHOT RENAME COLUMN INTERVAL2 TO INTERVAL;
+
+ALTER TABLE SNAPSHOT
+	ADD CONSTRAINT CHK_SNAPSHOT_INTERVAL
+	CHECK (INTERVAL IN ('y','h','q','m'));
+	   
+
+@..\snapshot_pkg
+@..\snapshot_body
+
+@update_tail

@@ -1,0 +1,51 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=3382
+define minor_version=10
+@update_header
+
+-- *** DDL ***
+-- Create tables
+
+-- Alter tables
+
+-- *** Grants ***
+
+-- ** Cross schema constraints ***
+
+-- *** Views ***
+-- Please paste the content of the view.
+
+-- *** Data changes ***
+-- RLS
+
+-- Data
+UPDATE CSR.PLUGIN 
+   SET CS_CLASS = 'Credit360.Property.Plugins.CertificationsTab'
+ WHERE JS_INCLUDE = '/csr/site/property/properties/controls/CertificationsTab.js';
+
+
+ALTER TABLE CSR.REGION_CERTIFICATES MODIFY FLOOR_AREA NUMBER(10,2);
+ALTER TABLE CSR.REGION_ENERGY_RATINGS MODIFY FLOOR_AREA NUMBER(10,2);
+
+ALTER TABLE CSRIMP.REGION_CERTIFICATES MODIFY FLOOR_AREA NUMBER(10,2);
+ALTER TABLE CSRIMP.REGION_ENERGY_RATINGS MODIFY FLOOR_AREA NUMBER(10,2);
+
+ALTER TABLE CSR.REGION_CERTIFICATES DROP CONSTRAINT PK_REGION_CERTS;
+ALTER TABLE CSR.REGION_CERTIFICATES MODIFY CERTIFICATE_NUMBER NULL;
+ALTER TABLE CSR.REGION_CERTIFICATES MODIFY ISSUED_DTM NOT NULL;
+ALTER TABLE CSR.REGION_CERTIFICATES ADD CONSTRAINT PK_REGION_CERTS PRIMARY KEY (APP_SID, REGION_SID, CERTIFICATION_ID, ISSUED_DTM);
+
+ALTER TABLE CSR.REGION_ENERGY_RATINGS DROP CONSTRAINT PK_REGION_ENERGY_RAT;
+ALTER TABLE CSR.REGION_ENERGY_RATINGS MODIFY ISSUED_DTM NOT NULL;
+ALTER TABLE CSR.REGION_ENERGY_RATINGS ADD CONSTRAINT PK_REGION_ENERGY_RAT PRIMARY KEY (APP_SID, REGION_SID);
+
+-- ** New package grants **
+
+-- *** Conditional Packages ***
+
+-- *** Packages ***
+@../region_certificate_pkg
+
+@../region_certificate_body
+
+@update_tail

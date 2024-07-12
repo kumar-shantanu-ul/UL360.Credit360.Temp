@@ -1,0 +1,67 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=3177
+define minor_version=0
+@update_header
+
+-- *** DDL ***
+-- Create tables
+
+-- Alter tables
+DECLARE
+	index_not_exists EXCEPTION;
+	PRAGMA EXCEPTION_INIT(index_not_exists, -1418);
+BEGIN
+	EXECUTE IMMEDIATE 'DROP INDEX CSR.UK_METER_SOURCE_DATA';
+EXCEPTION
+	WHEN index_not_exists THEN
+		NULL;
+END;
+/
+CREATE UNIQUE INDEX CSR.UK_METER_SOURCE_DATA ON CSR.METER_SOURCE_DATA(
+	DECODE(STATEMENT_ID, NULL, APP_SID, NULL),
+	DECODE(STATEMENT_ID, NULL, REGION_SID, NULL),
+	DECODE(STATEMENT_ID, NULL, METER_INPUT_ID, NULL),
+	DECODE(STATEMENT_ID, NULL, PRIORITY, NULL),
+	DECODE(STATEMENT_ID, NULL, START_DTM, NULL),
+	DECODE(STATEMENT_ID, NULL, END_DTM, NULL)
+);
+
+DECLARE
+	index_not_exists	EXCEPTION;
+	PRAGMA EXCEPTION_INIT(index_not_exists, -1418);
+BEGIN
+	EXECUTE IMMEDIATE 'DROP INDEX CSR.UK_METER_ORPHAN_DATA';
+EXCEPTION
+	WHEN index_not_exists THEN
+		NULL;
+END;
+/
+CREATE UNIQUE INDEX CSR.UK_METER_ORPHAN_DATA ON CSR.METER_ORPHAN_DATA(
+	DECODE(STATEMENT_ID, NULL, APP_SID, NULL),
+	DECODE(STATEMENT_ID, NULL, SERIAL_ID, NULL),
+	DECODE(STATEMENT_ID, NULL, METER_INPUT_ID, NULL),
+	DECODE(STATEMENT_ID, NULL, PRIORITY, NULL),
+	DECODE(STATEMENT_ID, NULL, UOM, NULL),
+	DECODE(STATEMENT_ID, NULL, START_DTM, NULL),
+	DECODE(STATEMENT_ID, NULL, END_DTM, NULL)
+);
+
+-- *** Grants ***
+
+-- ** Cross schema constraints ***
+
+-- *** Views ***
+-- Please paste the content of the view.
+
+-- *** Data changes ***
+-- RLS
+
+-- Data
+
+-- ** New package grants **
+
+-- *** Conditional Packages ***
+
+-- *** Packages ***
+
+@update_tail

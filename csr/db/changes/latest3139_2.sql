@@ -1,0 +1,43 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=3139
+define minor_version=2
+@update_header
+
+-- *** DDL ***
+-- Create tables
+CREATE TABLE SURVEYS.ANSWER_CUSTOM_OPTION (
+	APP_SID						NUMBER(10, 0)	DEFAULT SYS_CONTEXT('SECURITY', 'APP') NOT NULL,
+	CUSTOM_OPTION_ID			NUMBER(10, 0)	NOT NULL,
+	ANSWER_ID 					NUMBER(10, 0) 	NOT NULL,
+	QUESTION_ID 				NUMBER(10, 0) 	NOT NULL,
+	QUESTION_VERSION 			NUMBER(10, 0) 	NOT NULL,
+	QUESTION_DRAFT				NUMBER(1)		NOT NULL,
+	LABEL						VARCHAR2(255)	NOT NULL,
+	SELECTED					NUMBER(1,0) DEFAULT 0 NOT NULL,
+	CONSTRAINT PK_ANSWER_CUSTOM_OPTION PRIMARY KEY (APP_SID, CUSTOM_OPTION_ID, ANSWER_ID),
+	CONSTRAINT CHK_ACO_SELECTED_0_1 CHECK (SELECTED IN (0,1)),
+	CONSTRAINT FK_AQO_ANSWER FOREIGN KEY (APP_SID, ANSWER_ID) REFERENCES SURVEYS.ANSWER(APP_SID, ANSWER_ID),
+	CONSTRAINT FK_AQO_QUESTION_VERSION FOREIGN KEY (APP_SID, QUESTION_ID, QUESTION_VERSION, QUESTION_DRAFT) REFERENCES SURVEYS.QUESTION_VERSION(APP_SID, QUESTION_ID, QUESTION_VERSION, QUESTION_DRAFT)
+);
+
+-- Alter tables
+
+-- *** Grants ***
+
+-- ** Cross schema constraints ***
+
+-- *** Views ***
+-- Please paste the content of the view.
+
+-- *** Data changes ***
+-- RLS
+
+-- Data
+
+-- ** New package grants **
+
+-- *** Conditional Packages ***
+
+-- *** Packages ***
+
+@update_tail

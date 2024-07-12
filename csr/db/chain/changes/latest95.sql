@@ -1,0 +1,7 @@
+define version=95
+@update_header
+
+ALTER TABLE CHAIN.CUSTOMER_OPTIONS
+ADD (ALLOW_COMPANY_SELF_REG NUMBER(1) DEFAULT 0 NOT NULL);
+
+@update_tail

@@ -1,0 +1,8 @@
+
+SELECT DISTINCT cu.full_name, i.description INDICATOR, r.description REGION, changed_dtm, VAL.period_start_dtm, VAL.period_end_dtm, VAL.val_number FROM VAL_CHANGE VC, VAL, IND I, REGION R, CSR_USER CU WHERE r.region_sid = VAL.region_sid AND i.ind_sid = VAL.ind_sid 
+AND last_val_change_id = vc.val_change_id  AND CU.CSR_USER_SID = VC.CHANGED_BY_SID
+AND vc.region_sid IN ( SELECT region_sid FROM REGION 
+   START WITH parent_sid = 423314 
+ CONNECT BY PRIOR region_sid = parent_sid) AND vc.period_start_dtm < '1 Jan 2004' AND vc.changed_dtm>'1 Mar 2005'
+ ORDER BY FULL_NAME, INDICATOR, REGION
+ 

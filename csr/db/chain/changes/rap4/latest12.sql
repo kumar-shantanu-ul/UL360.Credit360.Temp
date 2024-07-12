@@ -1,0 +1,22 @@
+ define rap4_version=12
+ @update_header
+
+ 
+ALTER TABLE COMPONENT_TYPE ADD (
+	EDITOR_CARD_GROUP_ID    NUMBER(10, 0)
+);
+ 
+ALTER TABLE COMPONENT_TYPE ADD CONSTRAINT RefCARD_GROUP536 
+    FOREIGN KEY (EDITOR_CARD_GROUP_ID)
+    REFERENCES CARD_GROUP(CARD_GROUP_ID)
+;
+ 
+ALTER TABLE COMPONENT_TYPE DROP COLUMN EDIT_WIZARD_CLASS;
+
+@..\..\card_pkg
+@..\..\card_body
+@..\..\component_pkg
+@..\..\component_body
+
+
+@update_tail

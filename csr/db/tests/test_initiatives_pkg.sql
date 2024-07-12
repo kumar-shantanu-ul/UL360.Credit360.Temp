@@ -1,0 +1,20 @@
+CREATE OR REPLACE PACKAGE CSR.test_initiatives_pkg AS
+
+PROCEDURE InitiativeAdminAddMetricMapping;
+PROCEDURE InitiativeAdminRemoveMetricMapping;
+PROCEDURE InitiativeAdminAddMetric;
+PROCEDURE InitiativeAdminRemoveMetric;
+PROCEDURE InitiativeAdminAddType;
+PROCEDURE InitiativeAdminRemoveType;
+PROCEDURE InitiativeAdminAddAggregateTagGroups;
+PROCEDURE InitiativeAdminRemoveAggregateTagGroups;
+
+PROCEDURE TestCreateInitiative;
+PROCEDURE TestEditInitiative;
+PROCEDURE TestRemoveInitiative;
+
+PROCEDURE SetUpFixture(in_site_name VARCHAR2);
+PROCEDURE TearDownFixture;
+
+END;
+/

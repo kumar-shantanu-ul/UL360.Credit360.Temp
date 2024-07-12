@@ -1,0 +1,14 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=66
+@update_header
+
+connect csr/csr@&_CONNECT_IDENTIFIER
+grant select, references on region_tree to actions;
+
+connect actions/actions@&_CONNECT_IDENTIFIER
+
+-- Recompile SPs
+@../initiative_pkg
+@../initiative_body
+
+@update_tail

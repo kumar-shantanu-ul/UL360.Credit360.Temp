@@ -1,0 +1,134 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=740
+@update_header
+
+ALTER TABLE csr.IND ADD (
+    CONSTRAINT CONS_IND_MEASURE_SID  UNIQUE (APP_SID, IND_SID, MEASURE_SID)
+);
+ 
+ALTER TABLE csr.MEASURE_CONVERSION ADD (
+    CONSTRAINT CONS_MEAS_CONV_MEASURE  UNIQUE (APP_SID, MEASURE_CONVERSION_ID, MEASURE_SID)
+);
+ 
+ALTER TABLE csr.QUICK_SURVEY_ANSWER ADD (
+    MEASURE_CONVERSION_ID    NUMBER(10, 0),
+    MEASURE_SID              NUMBER(10, 0),
+    REGION_SID               NUMBER(10, 0)
+ );
+
+  
+ALTER TABLE csr.QUICK_SURVEY_QUESTION ADD (
+    IND_SID          NUMBER(10, 0),
+    MEASURE_SID      NUMBER(10, 0),
+    CONSTRAINT CONS_QS_QUES_MEASURE  UNIQUE (APP_SID, QUESTION_ID, MEASURE_SID)
+ );
+ 
+ 
+ALTER TABLE csr.QUICK_SURVEY_ANSWER ADD CONSTRAINT FK_MEASURE_CONV_QSA 
+    FOREIGN KEY (APP_SID, MEASURE_CONVERSION_ID, MEASURE_SID)
+    REFERENCES csr.MEASURE_CONVERSION(APP_SID, MEASURE_CONVERSION_ID, MEASURE_SID);
+
+ALTER TABLE csr.QUICK_SURVEY_ANSWER ADD CONSTRAINT FK_QSQ_QSA_MEASURE 
+    FOREIGN KEY (APP_SID, QUESTION_ID, MEASURE_SID)
+    REFERENCES csr.QUICK_SURVEY_QUESTION(APP_SID, QUESTION_ID, MEASURE_SID);
+ 
+ALTER TABLE csr.QUICK_SURVEY_QUESTION ADD CONSTRAINT FK_IND_QSQ 
+    FOREIGN KEY (APP_SID, IND_SID, MEASURE_SID)
+    REFERENCES csr.IND(APP_SID, IND_SID, MEASURE_SID);
+
+DECLARE
+	v_class_id		security_pkg.T_SID_ID;
+	v_act 			security_pkg.T_ACT_ID;
+BEGIN	
+	user_pkg.LogonAuthenticated(security_pkg.SID_BUILTIN_ADMINISTRATOR, NULL, v_ACT);	
+
+	v_class_id:=class_pkg.GetClassId('CSRQuickSurvey');
+	class_PKG.createmapping(v_act, security_pkg.SO_WEB_RESOURCE, security_pkg.PERMISSION_WRITE, v_class_id, 65536); --csr.Csr_Data_Pkg.PERMISSION_VIEW_ALL_RESULTS
+END;
+/
+
+
+CREATE TABLE csr.QS_RESPONSE_POSTIT(
+    APP_SID               NUMBER(10, 0)    DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    SURVEY_RESPONSE_ID    NUMBER(10, 0)    NOT NULL,
+    POSTIT_ID             NUMBER(10, 0)    NOT NULL,
+    CONSTRAINT PK_QS_RESPONSE_POSTIT PRIMARY KEY (APP_SID, SURVEY_RESPONSE_ID, POSTIT_ID)
+);
+
+ALTER TABLE csr.QUICK_SURVEY ADD (
+    AUDIENCE           VARCHAR2(32)     DEFAULT 'existing' NOT NULL,
+    CONSTRAINT CHK_QUICK_SURVEY_AUDIENCE CHECK (AUDIENCE IN ('everyone','existing','chain','audit'))
+);
+
+
+CREATE TABLE csr.USER_SURVEY_RESPONSE(
+    APP_SID               NUMBER(10, 0)    DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+    USER_SID              NUMBER(10, 0)    NOT NULL,
+    SURVEY_SID            NUMBER(10, 0)    NOT NULL,
+    SURVEY_RESPONSE_ID    NUMBER(10, 0)    NOT NULL,
+    CONSTRAINT PK_USER_SURVEY_RESPONSE PRIMARY KEY (APP_SID, USER_SID, SURVEY_SID)
+);
+
+ALTER TABLE csr.QS_RESPONSE_POSTIT ADD CONSTRAINT FK_POSTIT_QS_RESPONSE 
+    FOREIGN KEY (APP_SID, POSTIT_ID)
+    REFERENCES csr.POSTIT(APP_SID, POSTIT_ID) ON DELETE CASCADE;
+
+ALTER TABLE csr.QS_RESPONSE_POSTIT ADD CONSTRAINT FK_QS_RESP_POSTIT 
+    FOREIGN KEY (APP_SID, SURVEY_RESPONSE_ID)
+    REFERENCES csr.QUICK_SURVEY_RESPONSE(APP_SID, SURVEY_RESPONSE_ID);
+
+ 
+ALTER TABLE csr.QUICK_SURVEY_ANSWER ADD CONSTRAINT FK_REGION_QS_ANSWER 
+    FOREIGN KEY (APP_SID, REGION_SID)
+    REFERENCES csr.REGION(APP_SID, REGION_SID);
+
+
+ALTER TABLE csr.USER_SURVEY_RESPONSE ADD CONSTRAINT FK_QSR_USR_SRV_RESP 
+    FOREIGN KEY (APP_SID, SURVEY_SID, SURVEY_RESPONSE_ID)
+    REFERENCES csr.QUICK_SURVEY_RESPONSE(APP_SID, SURVEY_SID, SURVEY_RESPONSE_ID);
+
+ALTER TABLE csr.USER_SURVEY_RESPONSE ADD CONSTRAINT FK_USR_USR_SURV_RESP 
+    FOREIGN KEY (APP_SID, USER_SID)
+    REFERENCES csr.CSR_USER(APP_SID, CSR_USER_SID);
+
+-- add in postits webresource across all sites with a csr/site resource
+DECLARE
+	v_act	security_pkg.T_ACT_ID;
+	v_sid	security_pkg.T_SID_ID;
+BEGIN
+	user_pkg.LogonAuthenticated(security_pkg.SID_BUILTIN_ADMINISTRATOR, NULL, v_act);
+	FOR r IN (
+		SELECT sid_id, web_root_sid_id
+		  FROM security.web_resource 
+		 WHERE path = '/csr/site'
+	)
+	LOOP
+		web_pkg.CreateResource(v_act, r.web_root_sid_id, r.sid_id, 'postits', v_sid);
+		acl_pkg.AddACE(v_act, acl_pkg.GetDACLIDForSID(v_sid), security_pkg.ACL_INDEX_LAST, security_pkg.ACE_TYPE_ALLOW,
+			security_pkg.ACE_FLAG_DEFAULT, security_pkg.SID_BUILTIN_EVERYONE, security_pkg.PERMISSION_STANDARD_READ);
+	END LOOP;
+END;
+/
+
+-- move answers over to new region column
+update csr.quick_survey_answer 
+	set region_sid = to_number(answer)
+ where question_id in (
+	select question_id from csr.quick_survey_question where question_type = 'regionpicker'
+  ) and answer is not null;
+
+
+INSERT INTO csr.SOURCE_TYPE ( SOURCE_TYPE_ID, DESCRIPTION) VALUES (11, 'Survey');
+
+@..\csr_data_pkg
+@..\supplier_pkg
+@..\quick_survey_pkg
+@..\postit_pkg
+
+@..\quick_survey_body
+@..\postit_body
+@..\supplier_body
+@..\audit_body
+@..\sheet_body
+
+@update_tail

@@ -1,0 +1,218 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=3106
+define minor_version=15
+@update_header
+
+-- *** DDL ***
+-- Create tables
+CREATE TABLE surveys.audit_log (
+	app_sid				NUMBER(10) DEFAULT SYS_CONTEXT('SECURITY', 'APP') NOT NULL,
+	audit_log_id		NUMBER(10) NOT NULL,
+	audit_dtm			DATE DEFAULT SYSDATE NOT NULL,
+	user_sid			NUMBER(10) DEFAULT SYS_CONTEXT('SECURITY', 'SID') NOT NULL,
+	object_id			NUMBER(10) NOT NULL,
+	object_type_id		NUMBER(10) NOT NULL,		-- constant survey(s)_pkg?
+	CONSTRAINT PK_AUDIT_LOG PRIMARY KEY (app_sid, audit_log_id)
+);
+
+CREATE TABLE surveys.audit_log_detail (
+	app_sid				NUMBER(10) DEFAULT SYS_CONTEXT('SECURITY', 'APP') NOT NULL,
+	audit_log_detail_id	NUMBER(10) NOT NULL,
+	audit_log_id		NUMBER(10) NOT NULL,
+	entity_path			VARCHAR2(4000),			-- survey/{sid}/versions/{version}/sections/{sectionId}/simpleHelp/{lang}
+	new_value			VARCHAR2(255),			-- Updated help text
+	old_value			VARCHAR2(255),			-- Old help text
+	user_display_path	CLOB,					-- /section a / section a.1 / What is your name?
+	user_disp_new_value	VARCHAR2(255),			-- Updated help text
+	user_disp_old_value	VARCHAR2(255),			-- Old help text
+	field_type			VARCHAR2(255),			-- survey/versions/sections/simpleHelp/
+	operation			VARCHAR2(255),			-- CHANGE, ADD, DELETE etc.
+	CONSTRAINT FK_AUDIT_DETAIL_AUDIT FOREIGN KEY (app_sid, audit_log_id) REFERENCES surveys.audit_log(app_sid, audit_log_id)
+);
+
+-- Conditions for Show/hide logic
+CREATE TABLE SURVEYS.CONDITION (
+	APP_SID					NUMBER(10, 0)	DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+	CONDITION_ID			NUMBER(10, 0) 	NOT NULL,
+	SURVEY_SID				NUMBER(10, 0)	NOT NULL,
+	LABEL					NVARCHAR2(255)	NOT NULL,
+	ROOT_GROUP_ID			NUMBER(10, 0),
+	CONSTRAINT PK_CONDITION PRIMARY KEY(APP_SID, CONDITION_ID)
+);
+
+ALTER TABLE SURVEYS.CONDITION DROP COLUMN LABEL;
+ALTER TABLE SURVEYS.CONDITION ADD LABEL VARCHAR2(255);
+
+CREATE TABLE SURVEYS.CLAUSE_GROUP (
+	APP_SID					NUMBER(10, 0)	DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+	CLAUSE_GROUP_ID			NUMBER(10, 0) 	NOT NULL,
+	CONDITION_ID			NUMBER(10, 0)	NOT NULL,
+	GROUP_TYPE				VARCHAR2(3) 	NOT NULL,
+	CONSTRAINT PK_CLAUSE_GROUP PRIMARY KEY(APP_SID, CLAUSE_GROUP_ID)
+);
+
+CREATE TABLE SURVEYS.CLAUSE_GROUP_ITEM (
+	APP_SID					NUMBER(10, 0)	DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+	CLAUSE_GROUP_ITEM_ID	NUMBER(10, 0) 	NOT NULL,
+	CLAUSE_GROUP_ID			NUMBER(10, 0)	NOT NULL,
+	CLAUSE_ID				NUMBER(10, 0),
+	NESTED_GROUP_ID			NUMBER(10, 0),
+	POSITION				NUMBER(10, 0)  NOT NULL,
+	CONSTRAINT PK_CLAUSE_GROUP_ITEM PRIMARY KEY(APP_SID, CLAUSE_GROUP_ID, CLAUSE_GROUP_ITEM_ID)
+);
+
+CREATE TABLE SURVEYS.CLAUSE (
+	APP_SID					NUMBER(10, 0)	DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+	CLAUSE_ID				NUMBER(10, 0)	NOT NULL,
+	CLAUSE_TYPE				NUMBER(10, 0)	NOT NULL,
+	CLAUSE_OPERATOR			NUMBER(10, 0)	NOT NULL,
+	QUESTION_ID				NUMBER(10, 0),
+	COUNTRY					VARCHAR2(25),
+	TAG_ID					NUMBER(10, 0),
+	QUESTION_OPTION_ID		NUMBER(10, 0),
+	NUMERIC_VALUE			NUMBER(10,10),
+	DATE_VALUE				DATE,
+	CONSTRAINT PK_CLAUSE PRIMARY KEY(APP_SID, CLAUSE_ID)
+);
+
+CREATE TABLE SURVEYS.CONDITION_LINK (
+	APP_SID					NUMBER(10, 0)	DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+	CONDITION_LINK_ID		NUMBER(10, 0) 	NOT NULL,
+	CONDITION_ID			NUMBER(10, 0) 	NOT NULL,
+	QUESTION_ID				NUMBER(10, 0),
+	CONSTRAINT PK_CONDITION_LINK PRIMARY KEY(APP_SID, CONDITION_LINK_ID)
+);
+
+CREATE GLOBAL TEMPORARY TABLE surveys.temp_survey_versions
+(
+	SURVEY_SID     NUMBER(10) NOT NULL,
+	SURVEY_VERSION NUMBER(10) NOT NULL
+) ON COMMIT DELETE ROWS;
+
+
+-- Alter tables
+ALTER TABLE SURVEYS.SURVEY_VERSION ADD AUDIENCE VARCHAR2(32) NULL;
+ALTER TABLE SURVEYS.SURVEY_VERSION_TR ADD SUBMIT_MESSAGE VARCHAR2(4000) NULL;
+
+ALTER TABLE SURVEYS.ANSWER DROP CONSTRAINT CHK_SURVEY_ANSWER_VALUE;
+ALTER TABLE SURVEYS.ANSWER ADD CONSTRAINT CHK_SURVEY_ANSWER_VALUE CHECK ((TEXT_VALUE_SHORT IS NOT NULL AND TEXT_VALUE_LONG IS NULL AND BOOLEAN_VALUE IS NULL AND NUMERIC_VALUE IS NULL AND DATE_VALUE IS NULL)
+									OR (TEXT_VALUE_SHORT IS NULL AND TEXT_VALUE_LONG IS NOT NULL AND BOOLEAN_VALUE IS NULL AND NUMERIC_VALUE IS NULL AND DATE_VALUE IS NULL)
+									OR (TEXT_VALUE_SHORT IS NULL AND TEXT_VALUE_LONG IS NULL AND BOOLEAN_VALUE IS NOT NULL AND NUMERIC_VALUE IS NULL AND DATE_VALUE IS NULL)
+									OR (TEXT_VALUE_SHORT IS NULL AND TEXT_VALUE_LONG IS NULL AND BOOLEAN_VALUE IS NULL AND NUMERIC_VALUE IS NOT NULL AND DATE_VALUE IS NULL)
+									OR (TEXT_VALUE_SHORT IS NULL AND TEXT_VALUE_LONG IS NULL AND BOOLEAN_VALUE IS NULL AND NUMERIC_VALUE IS NULL AND DATE_VALUE IS NOT NULL)
+									OR (TEXT_VALUE_SHORT IS NULL AND TEXT_VALUE_LONG IS NULL AND BOOLEAN_VALUE IS NULL AND NUMERIC_VALUE IS NULL AND DATE_VALUE IS NULL))
+;
+
+ALTER TABLE SURVEYS.CONDITION
+	ADD SURVEY_VERSION NUMBER(10, 0);
+
+ALTER TABLE SURVEYS.QUESTION ADD (
+	MATRIX_ROW_ID			NUMBER(10, 0)
+);
+
+ALTER TABLE SURVEYS.CONDITION ADD CONSTRAINT FK_CONDITION_SURVEY_VERSION
+	FOREIGN KEY (APP_SID, SURVEY_SID, SURVEY_VERSION)
+	REFERENCES SURVEYS.SURVEY_VERSION (APP_SID, SURVEY_SID, SURVEY_VERSION);
+
+ALTER TABLE surveys.clause_group ADD CONSTRAINT fk_clause_group_condition
+     FOREIGN KEY (app_sid, condition_id)
+     REFERENCES surveys.condition (app_sid, condition_id)
+     ON DELETE CASCADE;
+
+ALTER TABLE SURVEYS.CLAUSE_GROUP_ITEM ADD CONSTRAINT fk_clause_grp_item_clause_grp
+     FOREIGN KEY (app_sid, clause_group_id)
+     REFERENCES surveys.clause_group (app_sid, clause_group_id)
+     ON DELETE CASCADE;
+
+ALTER TABLE SURVEYS.CLAUSE_GROUP_ITEM ADD CONSTRAINT fk_clause_group_item_clause
+     FOREIGN KEY (app_sid, clause_id)
+     REFERENCES surveys.clause (app_sid, clause_id)
+     ON DELETE CASCADE;
+
+-- ALTER TABLE SURVEYS.CLAUSE_GROUP_ITEM ADD CONSTRAINT fk_clause_group_item_clause
+     -- FOREIGN KEY (app_sid, clause_id)
+     -- REFERENCES surveys.clause (app_sid, clause_id)
+     -- ON DELETE CASCADE;
+
+ALTER TABLE SURVEYS.CONDITION_LINK ADD CONSTRAINT fk_condition_link_condition
+	FOREIGN KEY (app_sid, condition_id)
+	REFERENCES surveys.condition (app_sid, condition_id);
+
+ALTER TABLE SURVEYS.CONDITION_LINK ADD CONSTRAINT fk_condition_link_question
+	FOREIGN KEY (app_sid, question_id)
+	REFERENCES surveys.question (app_sid, question_id);
+
+
+-- *** Grants ***
+GRANT SELECT, REFERENCES ON csr.v$customer_lang TO surveys;
+
+-- ** Cross schema constraints ***
+
+-- *** Views ***
+-- Please paste the content of the view and add a comment referencing the path of the create_views file which will contain your view changes.
+
+-- *** Data changes ***
+-- RLS
+
+-- Data
+
+UPDATE surveys.survey_version
+   SET audience  = 'everyone'
+ WHERE audience IS NULL;
+
+UPDATE surveys.survey_version_tr
+   SET submit_message = '<p>Thank you for your submission</p>'
+ WHERE submit_message IS NULL;
+
+ALTER TABLE SURVEYS.SURVEY_VERSION MODIFY AUDIENCE NOT NULL;
+ALTER TABLE SURVEYS.SURVEY_VERSION_TR MODIFY SUBMIT_MESSAGE NOT NULL;
+
+INSERT INTO surveys.question_type (question_type, label)
+VALUES ('matrixset', 'Matrix question set');
+
+CREATE SEQUENCE surveys.condition_id_seq
+ START WITH     1
+ INCREMENT BY   1
+ NOCACHE
+ NOCYCLE;
+
+CREATE SEQUENCE surveys.clause_group_id_seq
+ START WITH     1
+ INCREMENT BY   1
+ NOCACHE
+ NOCYCLE;
+
+CREATE SEQUENCE surveys.clause_group_item_id_seq
+ START WITH     1
+ INCREMENT BY   1
+ NOCACHE
+ NOCYCLE;
+
+ CREATE SEQUENCE surveys.clause_id_seq
+ START WITH     1
+ INCREMENT BY   1
+ NOCACHE
+ NOCYCLE;
+
+ CREATE SEQUENCE surveys.condition_link_id_seq
+ START WITH     1
+ INCREMENT BY   1
+ NOCACHE
+ NOCYCLE;
+
+-- ** New package grants **
+CREATE OR REPLACE PACKAGE surveys.condition_pkg AS END;
+/
+GRANT EXECUTE ON surveys.condition_pkg TO web_user;
+
+-- *** Conditional Packages ***
+
+-- *** Packages ***
+--@../surveys/survey_pkg
+--@../surveys/question_library_pkg
+--@../surveys/condition_pkg
+--@../surveys/survey_body
+--@../surveys/question_library_body
+--@../surveys/condition_body
+
+@update_tail

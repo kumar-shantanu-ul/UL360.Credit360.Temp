@@ -1,0 +1,81 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=3411
+define minor_version=3
+@update_header
+
+-- *** DDL ***
+-- Create tables
+CREATE TABLE CSR.NOTIFICATION_TYPE(
+	APP_SID						NUMBER(10, 0)	DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+	NOTIFICATION_TYPE_ID		VARCHAR2(36) NOT NULL,
+	DESCRIPTION					VARCHAR2(255) NOT NULL,
+	SEND_TRIGGER				VARCHAR2(2000) NOT NULL,
+	SENT_FROM					VARCHAR2(2000) NOT NULL,
+	GROUP_NAME					VARCHAR2(255) NOT NULL,
+	CONSTRAINT PK_NOTIFICATION_TYPE PRIMARY KEY (APP_SID, NOTIFICATION_TYPE_ID)
+);
+
+CREATE TABLE CSR.NOTIFICATION_TYPE_PARAM(
+	APP_SID						NUMBER(10, 0)	DEFAULT SYS_CONTEXT('SECURITY','APP') NOT NULL,
+	NOTIFICATION_TYPE_ID		VARCHAR2(36) NOT NULL,
+	FIELD_NAME					VARCHAR2(100) NOT NULL,
+	DESCRIPTION					VARCHAR2(200) NOT NULL,
+	HELP_TEXT					VARCHAR2(2000) NOT NULL,
+	REPEATS						NUMBER(1) NOT NULL,
+	DISPLAY_POS					NUMBER(10) NOT NULL,
+	CONSTRAINT PK_NOTIFICATION_TYPE_PARAM PRIMARY KEY (APP_SID, NOTIFICATION_TYPE_ID, FIELD_NAME),
+	CONSTRAINT CK_NOTIFICATION_TYPE_PARAM_REPEATS CHECK (REPEATS IN (0, 1)),
+	CONSTRAINT CK_NOTIFICATION_TYPE_PARAM_NAME_UPPER CHECK (FIELD_NAME = UPPER(FIELD_NAME))
+);
+
+ALTER TABLE CSR.CUSTOMER_ALERT_TYPE ADD NOTIFICATION_TYPE_ID VARCHAR2(36);
+
+ALTER TABLE CSR.CUSTOMER_ALERT_TYPE ADD CONSTRAINT FK_CUSTOMER_ALERT_TYPE_NOTIF_TYPE_ID
+    FOREIGN KEY (APP_SID, NOTIFICATION_TYPE_ID)
+    REFERENCES CSR.NOTIFICATION_TYPE(APP_SID, NOTIFICATION_TYPE_ID);
+;
+
+ALTER TABLE CSR.NOTIFICATION_TYPE_PARAM ADD CONSTRAINT FK_NOTIFICATION_TYPE_PARAM_NOT_TYPE
+    FOREIGN KEY (APP_SID, NOTIFICATION_TYPE_ID)
+    REFERENCES CSR.NOTIFICATION_TYPE(APP_SID, NOTIFICATION_TYPE_ID)
+;
+
+CREATE INDEX csr.ix_customer_aler_notification_ ON csr.customer_alert_type (app_sid, notification_type_id);
+
+-- Alter tables
+
+-- *** Grants ***
+
+-- ** Cross schema constraints ***
+
+-- *** Views ***
+-- Please paste the content of the view.
+
+-- *** Data changes ***
+-- RLS
+
+-- Data
+
+-- ** New package grants **
+create or replace package csr.notification_pkg as
+procedure dummy;
+end;
+/
+create or replace package body csr.notification_pkg as
+procedure dummy
+as
+begin
+	null;
+end;
+end;
+/
+
+GRANT EXECUTE ON csr.notification_pkg TO web_user;
+
+-- *** Conditional Packages ***
+
+-- *** Packages ***
+@../notification_pkg
+@../notification_body
+
+@update_tail

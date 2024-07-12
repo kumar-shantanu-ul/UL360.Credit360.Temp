@@ -1,0 +1,14 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=1433
+@update_header
+
+Insert into CSR.STD_MEASURE (STD_MEASURE_ID, NAME, DESCRIPTION, SCALE, FORMAT_MASK, REGIONAL_AGGREGATION, CUSTOM_FIELD, PCT_OWNERSHIP_APPLIES, M, KG, S, A, K, MOL, CD) 
+	values (33,'m.s^-1','m.s^-1',0,'#,##0','sum',NULL,0,1,0,-1,0,0,0,0);
+Insert into CSR.STD_MEASURE_CONVERSION (STD_MEASURE_CONVERSION_ID, STD_MEASURE_ID, DESCRIPTION, A, B, C) 
+	values (26166,33,'m/s',1,1,0);
+Insert into CSR.STD_MEASURE_CONVERSION (STD_MEASURE_CONVERSION_ID, STD_MEASURE_ID, DESCRIPTION, A, B, C) 
+	values (26168,33,'km/h',3.6,1,0);
+Insert into CSR.STD_MEASURE_CONVERSION (STD_MEASURE_CONVERSION_ID, STD_MEASURE_ID, DESCRIPTION, A, B, C) 
+	values (26167,33,'mph',2.236936,1,0);
+
+@update_tail

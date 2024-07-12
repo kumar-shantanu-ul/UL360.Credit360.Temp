@@ -1,0 +1,70 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=1468
+@update_header
+
+ALTER TABLE CSR.METER_RAW_DATA_SOURCE MODIFY (
+    SOURCE_EMAIL				VARCHAR2(1024) NULL
+);
+
+ALTER TABLE CSR.METER_RAW_DATA_SOURCE ADD (
+    SOURCE_FOLDER				VARCHAR2(1024)	NULL,
+    FILE_MATCH_RX               VARCHAR2(256)   NULL,
+    RAW_DATA_SOURCE_TYPE_ID		NUMBER(10, 0)	NULL
+);
+
+CREATE TABLE CSR.METER_RAW_DATA_SOURCE_TYPE(
+    RAW_DATA_SOURCE_TYPE_ID    NUMBER(10, 0)     NOT NULL,
+    FEED_TYPE                  VARCHAR2(256)     NOT NULL,
+    DESCRIPTION                VARCHAR2(1024)    NOT NULL,
+    CONSTRAINT PK1490 PRIMARY KEY (RAW_DATA_SOURCE_TYPE_ID)
+)
+;
+
+BEGIN
+	INSERT INTO csr.meter_raw_data_source_type (raw_data_source_type_id, feed_type, description) VALUES(1, 'email', 'Email');
+	INSERT INTO csr.meter_raw_data_source_type (raw_data_source_type_id, feed_type, description) VALUES(2, 'ftp', 'FTP');
+	UPDATE csr.meter_raw_data_source SET raw_data_source_type_id = 1;
+END;
+/
+
+ALTER TABLE CSR.METER_RAW_DATA_SOURCE MODIFY (
+    RAW_DATA_SOURCE_TYPE_ID		NUMBER(10, 0)	NOT NULL
+);
+
+ALTER TABLE CSR.METER_RAW_DATA_SOURCE ADD CONSTRAINT FK_METER_RAW_DATA_SOURCE_TYPE 
+    FOREIGN KEY (RAW_DATA_SOURCE_TYPE_ID)
+    REFERENCES CSR.METER_RAW_DATA_SOURCE_TYPE(RAW_DATA_SOURCE_TYPE_ID)
+;
+
+CREATE INDEX IX_METER_RAW_DATA_SOURCE_TYPE ON CSR.METER_RAW_DATA_SOURCE(RAW_DATA_SOURCE_TYPE_ID);
+
+-----
+
+ALTER TABLE CSRIMP.METER_RAW_DATA_SOURCE MODIFY (
+    SOURCE_EMAIL				VARCHAR2(1024) NULL
+);
+
+ALTER TABLE CSRIMP.METER_RAW_DATA_SOURCE ADD (
+    SOURCE_FOLDER				VARCHAR2(1024)	NULL,
+    FILE_MATCH_RX               VARCHAR2(256)   NULL,
+    RAW_DATA_SOURCE_TYPE_ID		NUMBER(10, 0)	NULL
+);
+
+BEGIN
+	UPDATE csrimp.meter_raw_data_source SET raw_data_source_type_id = 1;
+END;
+/
+
+ALTER TABLE CSRIMP.METER_RAW_DATA_SOURCE MODIFY (
+    RAW_DATA_SOURCE_TYPE_ID		NUMBER(10, 0)	NOT NULL
+);
+
+-----
+
+@../meter_monitor_pkg
+@../meter_monitor_body
+
+@../schema_body
+@../csrimp/imp_body
+
+@update_tail

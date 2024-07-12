@@ -1,0 +1,30 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=1169
+@update_header
+
+DROP TYPE CSR.T_QS_QUESTION_OPTION_TABLE;
+
+CREATE OR REPLACE TYPE CSR.T_QS_QUESTION_OPTION_ROW AS
+	OBJECT (
+		QUESTION_ID			NUMBER(10),
+		QUESTION_OPTION_ID	NUMBER(10),
+		POS					NUMBER(10),
+		LABEL				VARCHAR2(4000), 
+		SCORE				NUMBER(10),
+		HAS_OVERRIDE		NUMBER(10),
+		SCORE_OVERRIDE		NUMBER(10),
+		COLOR				NUMBER(10),
+		LOOKUP_KEY			VARCHAR2(255),
+		OPTION_ACTION		VARCHAR2(50)
+	);
+/
+CREATE OR REPLACE TYPE CSR.T_QS_QUESTION_OPTION_TABLE AS
+  TABLE OF CSR.T_QS_QUESTION_OPTION_ROW;
+/
+
+@../flow_pkg
+@../flow_body
+@../quick_survey_body
+
+@update_tail
+

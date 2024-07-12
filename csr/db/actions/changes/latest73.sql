@@ -1,0 +1,52 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=73
+@update_header
+
+
+connect csr/csr@&_CONNECT_IDENTIFIER
+grant select, references on alert_type to actions;
+connect actions/actions@&_CONNECT_IDENTIFIER
+
+
+ALTER TABLE TASK ADD (
+	LAST_TRANSITION_ID      NUMBER(10, 0)
+);
+
+ALTER TABLE TASK_STATUS_TRANSITION ADD (
+	ALERT_TYPE_ID                NUMBER(10, 0),
+    BUTTON_TEXT                  VARCHAR2(255)
+);
+
+ALTER TABLE TASK_PERIOD_STATUS ADD (
+	MEANS_TASK_STATUS_ID     NUMBER(10, 0)
+);
+
+ALTER TABLE TASK ADD CONSTRAINT RefTASK_STATUS_TRANSITION251 
+    FOREIGN KEY (APP_SID, LAST_TRANSITION_ID)
+    REFERENCES TASK_STATUS_TRANSITION(APP_SID, TASK_STATUS_TRANSITION_ID)
+;
+
+ALTER TABLE TASK_STATUS_TRANSITION ADD CONSTRAINT RefALERT_TYPE249 
+    FOREIGN KEY (ALERT_TYPE_ID)
+    REFERENCES CSR.ALERT_TYPE(ALERT_TYPE_ID)
+;
+
+ALTER TABLE TASK_PERIOD_STATUS ADD CONSTRAINT RefTASK_STATUS254 
+    FOREIGN KEY (APP_SID, MEANS_TASK_STATUS_ID)
+    REFERENCES TASK_STATUS(APP_SID, TASK_STATUS_ID)
+;
+
+-- Copy button text to transition table
+BEGIN
+	UPDATE task_status_transition tr
+	   SET button_text = (
+			SELECT button_text
+			  FROM task_status ts
+			 WHERE ts.task_status_id = tr.to_task_status_id
+	   );
+END;
+/
+
+ALTER TABLE TASK_STATUS DROP COLUMN BUTTON_TEXT;
+
+@update_tail

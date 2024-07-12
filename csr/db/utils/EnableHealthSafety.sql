@@ -1,0 +1,1 @@
+PROMPT This does nothing. It's just here to point you at C:\cvs\clients\hs\db

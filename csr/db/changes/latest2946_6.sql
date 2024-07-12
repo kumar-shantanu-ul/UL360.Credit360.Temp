@@ -1,0 +1,103 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=2946
+define minor_version=6
+@update_header
+
+-- *** DDL ***
+-- Create tables
+
+-- Alter tables
+ALTER TABLE csr.like_for_like_slot
+  DROP COLUMN is_locked;
+
+ALTER TABLE csrimp.like_for_like_slot
+  DROP COLUMN is_locked;
+
+CREATE OR REPLACE TYPE CSR.T_LIKE_FOR_LIKE AS 
+ OBJECT ( 
+	LIKE_FOR_LIKE_SID			NUMBER(10),
+	NAME						VARCHAR2(255),
+	IND_SID						NUMBER(10),
+	REGION_SID					NUMBER(10),
+	INCLUDE_INACTIVE_REGIONS	NUMBER(1),
+	PERIOD_START_DTM			DATE,
+	PERIOD_END_DTM				DATE,
+	PERIOD_SET_ID				NUMBER(10),
+	PERIOD_INTERVAL_ID			NUMBER(10),
+	RULE_TYPE					NUMBER(1),
+	SCENARIO_RUN_SID			NUMBER(10),
+	CREATED_BY_USER_SID			NUMBER(10),
+	CREATED_DTM					DATE,
+	LAST_REFRESH_USER_SID		NUMBER(10),
+	LAST_REFRESH_DTM			DATE,
+	CONSTRUCTOR FUNCTION T_LIKE_FOR_LIKE(SID NUMBER)
+		RETURN SELF AS RESULT
+	);
+/
+
+CREATE OR REPLACE TYPE BODY CSR.T_LIKE_FOR_LIKE AS
+	CONSTRUCTOR FUNCTION T_LIKE_FOR_LIKE(SID NUMBER)
+	RETURN SELF AS RESULT
+AS
+	BEGIN
+		SELECT LIKE_FOR_LIKE_SID, NAME, IND_SID, REGION_SID, INCLUDE_INACTIVE_REGIONS,
+			PERIOD_START_DTM, PERIOD_END_DTM, PERIOD_SET_ID, PERIOD_INTERVAL_ID,
+			RULE_TYPE, SCENARIO_RUN_SID, CREATED_BY_USER_SID, CREATED_DTM,
+			LAST_REFRESH_DTM
+		  INTO SELF.LIKE_FOR_LIKE_SID, SELF.NAME, SELF.IND_SID, SELF.REGION_SID,
+			SELF.INCLUDE_INACTIVE_REGIONS, SELF.PERIOD_START_DTM, SELF.PERIOD_END_DTM,
+			SELF.PERIOD_SET_ID, SELF.PERIOD_INTERVAL_ID, SELF.RULE_TYPE, SELF.SCENARIO_RUN_SID,
+			SELF.CREATED_BY_USER_SID, SELF.CREATED_DTM, SELF.LAST_REFRESH_DTM
+		  FROM CSR.LIKE_FOR_LIKE_SLOT
+		 WHERE LIKE_FOR_LIKE_SID = SID;
+
+		 RETURN;
+	END;
+END;
+/
+
+DROP TYPE CSR.T_LIKE_FOR_LIKE_VAL_TABLE;
+
+CREATE OR REPLACE TYPE CSR.T_LIKE_FOR_LIKE_VAL_ROW AS 
+	OBJECT (
+	IND_SID				NUMBER(10),
+	REGION_SID			NUMBER(10),
+	PERIOD_START_DTM	DATE,
+	PERIOD_END_DTM		DATE,
+	VAL_NUMBER			NUMBER(24,10),
+	SOURCE_TYPE_ID		NUMBER(10),
+	SOURCE_ID			NUMBER(20)
+	);
+/
+
+CREATE OR REPLACE TYPE CSR.T_LIKE_FOR_LIKE_VAL_TABLE AS 
+	TABLE OF CSR.T_LIKE_FOR_LIKE_VAL_ROW;
+/
+
+-- *** Grants ***
+
+-- ** Cross schema constraints ***
+
+-- *** Views ***
+-- Please paste the content of the view and add a comment referencing the path of the create_views file which will contain your view changes.
+
+-- *** Data changes ***
+-- RLS
+
+-- Data
+
+-- ** New package grants **
+
+-- *** Conditional Packages ***
+
+-- *** Packages ***
+
+@../like_for_like_pkg
+@../like_for_like_body
+@../customer_body
+@../csrimp/imp_pkg
+@../schema_pkg
+@../csrimp/imp_body
+@../schema_body
+
+@update_tail

@@ -1,0 +1,6 @@
+-- template.  don't do this unless you know *exactly* what you are doing.
+--alter table scenario_run_val add partition scnrnval_12912680 values less than (12912681)
+--(
+--subpartition scnrnval_12912680_14383654 values (14383654),
+--subpartition scnrnval_12912680_others values (default)
+--);

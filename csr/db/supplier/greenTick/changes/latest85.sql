@@ -1,0 +1,24 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=85
+@update_header
+	
+-- aadd WSR col for material items
+ALTER TABLE SUPPLIER.GT_PDA_MATERIAL_ITEM
+ADD (GT_WATER_STRESS_REGION_ID NUMBER(10));
+
+-- set a default -- "None of these"
+UPDATE GT_PDA_MATERIAL_ITEM
+SET    GT_WATER_STRESS_REGION_ID = 9;
+/
+
+
+
+ALTER TABLE GT_PDA_MATERIAL_ITEM ADD CONSTRAINT RefGT_WATER_STRESS_REGION964 
+    FOREIGN KEY (GT_WATER_STRESS_REGION_ID)
+    REFERENCES GT_WATER_STRESS_REGION(GT_WATER_STRESS_REGION_ID)
+;
+-- now set WSR col non null
+ALTER TABLE SUPPLIER.GT_PDA_MATERIAL_ITEM
+MODIFY(GT_WATER_STRESS_REGION_ID  NOT NULL);
+	
+@update_tail

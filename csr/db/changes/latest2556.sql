@@ -1,0 +1,178 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=2556
+@update_header
+
+-- *** DDL ***
+-- Drop unused sequence.
+DECLARE
+	v_cnt	NUMBER(10);
+BEGIN
+	SELECT count(*) 
+	  INTO v_cnt
+	  FROM all_sequences
+	 WHERE sequence_name = 'MODULE_ID'
+	   AND sequence_owner = 'CSR';
+	
+	IF v_cnt = 1 THEN
+		BEGIN
+			EXECUTE IMMEDIATE 'DROP SEQUENCE CSR.MODULE_ID';
+		END;
+	END IF;
+END;
+/
+
+-- Create tables
+DECLARE
+	v_cnt	NUMBER(10);
+BEGIN
+	SELECT count(*) 
+	  INTO v_cnt
+	  FROM all_tables
+	 WHERE table_name = 'COURSE_TYPE_REGION'
+	   AND owner = 'CSR';
+	
+	IF v_cnt = 0 THEN
+		BEGIN
+			EXECUTE IMMEDIATE 'CREATE TABLE CSR.COURSE_TYPE_REGION (
+			APP_SID NUMBER(10) DEFAULT SYS_CONTEXT(''SECURITY'',''APP'') NOT NULL,
+			COURSE_TYPE_ID NUMBER(10) NOT NULL,
+			REGION_SID NUMBER(10) NOT NULL,
+			CONSTRAINT PK_COURSE_TYPE_REGION PRIMARY KEY (APP_SID, COURSE_TYPE_ID, REGION_SID),
+			CONSTRAINT FK_CTR_COURSE_TYPE FOREIGN KEY (APP_SID, COURSE_TYPE_ID) REFERENCES CSR.COURSE_TYPE (APP_SID, COURSE_TYPE_ID),
+			CONSTRAINT FK_CTR_REGION FOREIGN KEY (APP_SID, REGION_SID) REFERENCES CSR.REGION (APP_SID, REGION_SID)
+			)';
+		END;
+	END IF;
+END;
+/
+
+-- Alter tables
+DECLARE
+	v_cnt	NUMBER(10);
+BEGIN
+	SELECT count(*) 
+	  INTO v_cnt
+	  FROM all_tables
+	 WHERE table_name = 'USER_RELATIONSHIP_TYPE'
+	   AND owner = 'CSR';
+	
+	IF v_cnt = 1 THEN
+		BEGIN
+			SELECT COUNT(*)
+			  INTO v_cnt 
+			  FROM all_tab_cols
+			 WHERE table_name = 'USER_RELATIONSHIP_TYPE'
+			   AND owner = 'CSR'
+			   AND COLUMN_NAME = 'LOOKUP_KEY';
+			
+			IF v_cnt = 0 THEN
+				EXECUTE IMMEDIATE 'ALTER TABLE CSR.USER_RELATIONSHIP_TYPE ADD LOOKUP_KEY VARCHAR2(255)';
+				EXECUTE IMMEDIATE 'CREATE UNIQUE INDEX CSR.IDX_UK_USR_REL_TYPE_LOOKUP_KEY ON CSR.USER_RELATIONSHIP_TYPE(APP_SID, NVL(UPPER(LOOKUP_KEY),''URT''||TO_CHAR(USER_RELATIONSHIP_TYPE_ID)))';
+			END IF;
+		END;
+	END IF;
+END;
+/
+
+DECLARE
+	v_cnt	NUMBER(10);
+BEGIN
+	SELECT count(*) 
+	  INTO v_cnt
+	  FROM all_tables
+	 WHERE table_name = 'FUNCTION'
+	   AND owner = 'CSR';
+	
+	IF v_cnt = 1 THEN
+		BEGIN
+			SELECT COUNT(*)
+			  INTO v_cnt 
+			  FROM all_tab_cols
+			 WHERE table_name = 'FUNCTION'
+			   AND owner = 'CSR'
+			   AND COLUMN_NAME = 'LOOKUP_KEY';
+			
+			IF v_cnt = 0 THEN
+				EXECUTE IMMEDIATE 'ALTER TABLE CSR.FUNCTION ADD LOOKUP_KEY VARCHAR2(255)';
+				EXECUTE IMMEDIATE 'CREATE UNIQUE INDEX CSR.IDX_UK_FUNCTION_LOOKUP_KEY ON CSR.FUNCTION(APP_SID, NVL(UPPER(LOOKUP_KEY),''URT''||TO_CHAR(FUNCTION_ID)))';
+			END IF;
+		END;
+	END IF;
+END;
+/
+
+DECLARE
+	v_cnt	NUMBER(10);
+BEGIN
+	SELECT count(*) 
+	  INTO v_cnt
+	  FROM all_tables
+	 WHERE table_name = 'COURSE_TYPE'
+	   AND owner = 'CSR';
+	
+	IF v_cnt = 1 THEN
+		BEGIN
+			SELECT COUNT(*)
+			  INTO v_cnt 
+			  FROM all_tab_cols
+			 WHERE table_name = 'COURSE_TYPE'
+			   AND owner = 'CSR'
+			   AND COLUMN_NAME = 'LOOKUP_KEY';
+			
+			IF v_cnt = 0 THEN
+				EXECUTE IMMEDIATE 'ALTER TABLE CSR.COURSE_TYPE ADD LOOKUP_KEY VARCHAR2(255)';
+				EXECUTE IMMEDIATE 'CREATE UNIQUE INDEX CSR.IDX_UK_COURSE_TYPE_LOOKUP_KEY ON CSR.COURSE_TYPE(APP_SID, NVL(UPPER(LOOKUP_KEY),''URT''||TO_CHAR(COURSE_TYPE_ID)))';
+			END IF;
+			
+			SELECT COUNT(*)
+			  INTO v_cnt 
+			  FROM all_tab_cols
+			 WHERE table_name = 'COURSE_TYPE'
+			   AND owner = 'CSR'
+			   AND COLUMN_NAME = 'USER_RELATIONSHIP_TYPE_ID';
+			
+			IF v_cnt = 0 THEN
+				EXECUTE IMMEDIATE 'ALTER TABLE CSR.COURSE_TYPE ADD USER_RELATIONSHIP_TYPE_ID NUMBER(10)';
+				EXECUTE IMMEDIATE 'ALTER TABLE CSR.COURSE_TYPE ADD CONSTRAINT FK_COURSE_TYPE_USER_REL_TYPE 
+				FOREIGN KEY (APP_SID, USER_RELATIONSHIP_TYPE_ID) REFERENCES CSR.USER_RELATIONSHIP_TYPE (APP_SID,USER_RELATIONSHIP_TYPE_ID)';
+			END IF;	
+		END;
+	END IF;
+END;
+/
+
+-- *** Grants ***
+GRANT EXECUTE ON aspen2.T_SPLIT_TABLE TO cms;
+GRANT EXECUTE ON aspen2.T_SPLIT_ROW TO cms;
+CREATE OR REPLACE SYNONYM cms.T_SPLIT_TABLE FOR aspen2.T_SPLIT_TABLE;
+CREATE OR REPLACE SYNONYM cms.T_SPLIT_ROW FOR aspen2.T_SPLIT_ROW;
+
+-- ** Cross schema constraints ***
+
+-- *** Views ***
+
+-- *** Data changes ***
+-- RLS
+
+-- Data
+BEGIN
+	INSERT INTO csr.capability (name, allow_by_default) VALUES ('Can edit course details', 0);
+EXCEPTION
+	WHEN DUP_VAL_ON_INDEX THEN
+		-- it's on live already
+		NULL;
+END;
+/
+
+-- *** Packages ***
+@../../../aspen2/cms/db/tab_pkg
+@../training_pkg
+@../role_pkg
+@../property_pkg
+
+@../../../aspen2/cms/db/tab_body
+@../training_body
+@../role_body
+@../property_body
+
+@update_tail

@@ -1,0 +1,9 @@
+define version=971
+@update_header
+
+alter table CSR.NEW_DELEGATION_ALERT
+	ADD CONSTRAINT "UK_NEW_DELEGATION_ALERT"
+		UNIQUE ("APP_SID", "SHEET_ID", "NOTIFY_USER_SID", "RAISED_BY_USER_SID");
+
+@update_tail
+

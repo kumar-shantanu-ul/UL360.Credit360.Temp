@@ -1,0 +1,77 @@
+-- Please update version.sql too -- this keeps clean builds in sync
+define version=2794
+define minor_version=0
+@update_header
+
+-- *** DDL ***
+-- Create tables
+
+-- Alter tables
+
+lock table CHAIN.FILTER_FIELD in exclusive mode;
+lock table CHAIN.FILTER_VALUE in exclusive mode;
+lock table CSR.QS_FILTER_CONDITION_GENERAL in exclusive mode;
+lock table CSR.QS_FILTER_CONDITION in exclusive mode;
+
+ALTER TABLE CHAIN.FILTER_FIELD DROP CONSTRAINT FK_FLT_FLT_FLD;
+ALTER TABLE CHAIN.FILTER_FIELD ADD CONSTRAINT FK_FLT_FLT_FLD 
+    FOREIGN KEY (APP_SID, FILTER_ID)
+    REFERENCES CHAIN.FILTER(APP_SID, FILTER_ID)
+;
+
+ALTER TABLE CHAIN.FILTER_VALUE DROP CONSTRAINT FK_FLT_VAL_FLD;
+ALTER TABLE CHAIN.FILTER_VALUE ADD CONSTRAINT FK_FLT_VAL_FLD 
+    FOREIGN KEY (APP_SID, FILTER_FIELD_ID)
+    REFERENCES CHAIN.FILTER_FIELD(APP_SID, FILTER_FIELD_ID)
+;
+
+ALTER TABLE chain.filter_value DROP CONSTRAINT fk_filter_value_comp_filter;
+ALTER TABLE chain.filter_value ADD CONSTRAINT fk_filter_value_comp_filter
+	FOREIGN KEY (app_sid, compound_filter_id_value)
+	REFERENCES chain.compound_filter (app_sid, compound_filter_id)
+;
+
+
+ALTER TABLE CSR.QS_FILTER_CONDITION_GENERAL DROP CONSTRAINT FK_QS_FILTER_COND_GEN_TYPE;
+ALTER TABLE CSR.QS_FILTER_CONDITION_GENERAL DROP CONSTRAINT FK_QS_FILTER_COND_GEN_SURVEY;
+
+ALTER TABLE CSR.QS_FILTER_CONDITION_GENERAL ADD (
+	CONSTRAINT FK_QS_FILTER_COND_GEN_TYPE FOREIGN KEY 
+		(QS_FILTER_COND_GEN_TYPE_ID) REFERENCES CSR.QS_FILTER_COND_GEN_TYPE(QS_FILTER_COND_GEN_TYPE_ID),
+	CONSTRAINT FK_QS_FILTER_COND_GEN_SURVEY FOREIGN KEY 
+		(APP_SID, SURVEY_SID) REFERENCES CSR.QUICK_SURVEY(APP_SID, SURVEY_SID)
+);
+
+ALTER TABLE CSR.QS_FILTER_CONDITION_GENERAL DROP CONSTRAINT FK_QS_FIL_COND_GEN_CHAIN_FIL;
+ALTER TABLE CSR.QS_FILTER_CONDITION_GENERAL ADD CONSTRAINT FK_QS_FIL_COND_GEN_CHAIN_FIL 
+	FOREIGN KEY (APP_SID, FILTER_ID) 
+	REFERENCES CHAIN.FILTER(APP_SID, FILTER_ID);
+
+ALTER TABLE CSR.QS_FILTER_CONDITION DROP CONSTRAINT FK_QS_FIL_COND_CHAIN_FIL;
+ALTER TABLE CSR.QS_FILTER_CONDITION ADD CONSTRAINT FK_QS_FIL_COND_CHAIN_FIL
+    FOREIGN KEY (APP_SID, FILTER_ID)
+    REFERENCES CHAIN.FILTER(APP_SID, FILTER_ID);
+
+-- *** Grants ***
+
+-- ** Cross schema constraints ***
+
+-- *** Views ***
+-- Please add the path to the create_views file which will contain your view changes.  I will use this version when making the major scripts.
+
+-- *** Data changes ***
+-- RLS
+
+-- Data
+
+-- ** New package grants **
+
+-- *** Packages ***
+
+@..\chain\filter_pkg
+@..\quick_survey_pkg
+
+@..\chain\filter_body
+@..\quick_survey_body
+
+@update_tail
