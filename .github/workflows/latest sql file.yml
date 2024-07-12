@@ -1,0 +1,35 @@
+
+name: latest sql file
+
+on:
+  pull_request:
+    branches:
+      - main
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  check-latest-sql:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: latest sql file
+        id: check-latest-sql
+        run: |
+          if ls csr/db/branchchanges/latest*.sql 1> /dev/null 2>&1; then
+            echo "::error::SQL file containing 'latest' found in branchchanges folder."
+            echo "Please run dev -rp <branchname> before merging to main."
+            exit 1
+          else
+            echo "No 'latest' SQL file found. Proceeding with the pull request."
+          fi
+
+      - name: Fail if "latest" SQL file exists
+        if: steps.check-latest-sql.outputs.file_exists == 'true'
+        run: |
+          echo "Error: A SQL file containing 'latest' exists in the specified folder."
+          exit 1
