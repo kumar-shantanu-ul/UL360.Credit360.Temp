@@ -1,7 +1,0 @@
-define version=133
-@update_header
-
-ALTER TABLE CHAIN.COMPONENT_RELATIONSHIP
-MODIFY(AMOUNT_CHILD_PER_PARENT NUMBER(13,5));
-
-@update_tail

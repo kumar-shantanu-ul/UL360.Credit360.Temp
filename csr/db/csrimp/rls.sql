@@ -1,3 +1,0 @@
-@@security_functions
-
-@@addSessionIdRLS
