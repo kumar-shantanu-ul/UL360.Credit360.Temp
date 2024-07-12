@@ -1,8 +1,9 @@
 
 name: Check for "latest" SQL File
 
-on: 
+on:
   pull_request:
+  merge_group:
     branches:
       - main
 
