@@ -6,6 +6,7 @@ PROCEDURE GetAccuracyTypes(
 	out_cur				OUT	security_pkg.T_OUTPUT_CUR
 )
 AS
+
 BEGIN
 	IF NOT security_pkg.IsAccessAllowedSID(in_act_id, in_app_sid, security_pkg.PERMISSION_READ) THEN
 		RAISE_APPLICATION_ERROR(security_pkg.ERR_ACCESS_DENIED, 'Access denied');
