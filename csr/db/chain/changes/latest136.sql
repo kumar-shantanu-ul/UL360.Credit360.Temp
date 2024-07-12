@@ -1,7 +1,0 @@
-define version=136
-@update_header
-
-ALTER TABLE CHAIN.CUSTOMER_OPTIONS
-ADD (PRODUCT_URL_READ_ONLY VARCHAR2(4000 BYTE));
-			
-@update_tail
