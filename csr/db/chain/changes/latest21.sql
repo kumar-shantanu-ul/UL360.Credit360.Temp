@@ -1,6 +1,0 @@
-define version=21
-@update_header
-
-CREATE UNIQUE INDEX UC_QUESTIONNAIRE_TYPE_CLASS ON QUESTIONNAIRE_TYPE(APP_SID, CLASS);
-
-@update_tail

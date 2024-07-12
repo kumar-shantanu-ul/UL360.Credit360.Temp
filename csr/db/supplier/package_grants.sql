@@ -1,9 +1,0 @@
-GRANT EXECUTE ON supplier.supplier_user_pkg TO SECURITY;
-GRANT EXECUTE ON supplier.company_pkg TO SECURITY;
-GRANT EXECUTE ON supplier.tag_pkg TO SECURITY;
-
--- these are views
-GRANT DELETE ON SUPPLIER.COMPANY TO CSR;
-GRANT DELETE ON SUPPLIER.PRODUCT TO CSR;
-
-@@web_grants
